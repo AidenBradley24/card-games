@@ -1,24 +1,26 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, {useState} from 'react';
 import './App.css';
 
+import { RenderedDeck, RenderedPlayingCard, DeckMode } from './CardRenderer';
+import CardEngine from './CardEngine';
+
 function App() {
+
+  let pile = CardEngine.getStandard52();
+
+  document.title = "Card Engine"
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
         <p>
-          Edit <code>src/App.tsx</code> and save to reload.
+          Card Engine
         </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
       </header>
+      <div className="PlayArea">
+        <RenderedDeck name="Draw Pile" initialDeck={pile} mode={DeckMode.TopOne}/>
+      </div>
+
     </div>
   );
 }

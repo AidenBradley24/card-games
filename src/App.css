@@ -15,7 +15,7 @@
 
 .App-header {
   background-color: #282c34;
-  min-height: 100vh;
+  min-height: 50px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -35,4 +35,26 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.PlayArea {
+  height: 800px;
+  padding: 20px;
+}
+
+.PlayingCard {
+  width: 250px;
+  height: 350px;
+  background-color: whitesmoke;
+  margin: 20px;
+  align-self: center;
+}
+
+.Deck {
+  min-width: 300px;
+  min-height: 400px;
+  background-color: gray;
+  margin: 5px;
+  align-content: center;
+  justify-content: center;
 }
