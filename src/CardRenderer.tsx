@@ -23,6 +23,9 @@ interface IRenderedDeckProps {
     name: string;
     initialDeck: CardEngine.Deck;
     mode: DeckMode;
+    children?: React.ReactNode; 
+    onDraw?: (card: CardEngine.PlayingCard) => void;
+    onEmpty?: () => void;
 }
 
 interface IRenderedDeckState {
@@ -35,14 +38,8 @@ export class RenderedDeck extends React.Component<IRenderedDeckProps, IRenderedD
         this.state = {deck: props.initialDeck};
     }
 
-    drawCard = () => {
-        const newDeck = this.state.deck.clone();
-        newDeck.draw();
-        this.setState({ deck: newDeck });
-    };
-
     render() {
-        const { mode, name } = this.props;
+        const { mode, name, children } = this.props;
         const { deck } = this.state;
 
         let inner: JSX.Element;
@@ -62,7 +59,8 @@ export class RenderedDeck extends React.Component<IRenderedDeckProps, IRenderedD
             <span>{name}: {deck.size}</span>
             <div>{inner}</div>
             <div>
-                <button onClick={this.drawCard}>Draw</button>
+                {/* options section */}
+                {children}
             </div>
         </div>
         );
@@ -70,3 +68,37 @@ export class RenderedDeck extends React.Component<IRenderedDeckProps, IRenderedD
 }
 
 export default RenderedDeck;
+
+export class DrawPile extends React.Component<IRenderedDeckProps, IRenderedDeckState> {
+
+    private onDraw;
+    private onEmpty;
+
+    constructor(props: IRenderedDeckProps) {
+        super(props);
+        this.state = { deck: props.initialDeck };
+        this.onDraw = props.onDraw;
+        this.onEmpty = props.onEmpty;
+    }
+
+    drawCard() {
+        const newDeck = this.state.deck.clone();
+        let card = newDeck.draw();
+        this.setState({ deck: newDeck });
+        if(card === null) {
+            if(this.onEmpty !== undefined) this.onEmpty();
+        }
+        else {
+            if(this.onDraw !== undefined) this.onDraw(card);
+        }
+    }
+
+    override render() {
+
+        return (
+            <RenderedDeck {...this.props}>
+                <button onClick={this.drawCard}>Draw</button>
+            </RenderedDeck>
+        )
+    }
+}

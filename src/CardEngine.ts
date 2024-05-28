@@ -1,5 +1,57 @@
 export namespace CardEngine {
 
+    export enum CardSuit {
+        Hearts = 1,
+        Diamonds,
+        Clubs,
+        Spades,
+    }
+    
+    export enum CardValue {
+        Ace = 1,
+        Two,
+        Three,
+        Four,
+        Five,
+        Six,
+        Seven,
+        Eight,
+        Nine,
+        Ten,
+        Jack,
+        Queen,
+        King
+    }
+
+    export enum ValueRule {
+        HighAce,
+        LowAce,
+        DuelAce
+    }
+    
+    const suitNames = new Map<CardSuit, string>([
+        [CardSuit.Hearts, "hearts"],
+        [CardSuit.Diamonds, "diamonds"],
+        [CardSuit.Clubs, "clubs"],
+        [CardSuit.Spades, "spades"],
+    ]);
+    
+    const valueNames = new Map<CardValue, string>([
+        [CardValue.Ace, "ace"],
+        [CardValue.Two, "two"],
+        [CardValue.Three, "three"],
+        [CardValue.Four, "four"],
+        [CardValue.Five, "five"],
+        [CardValue.Six, "six"],
+        [CardValue.Seven, "seven"],
+        [CardValue.Eight, "eight"],
+        [CardValue.Nine, "nine"],
+        [CardValue.Ten, "ten"],
+        [CardValue.Jack, "jack"],
+        [CardValue.Queen, "queen"],
+        [CardValue.King, "king"],
+    ]);
+
     export class PlayingCard {
         suit: CardSuit;
         value: CardValue;
@@ -71,7 +123,7 @@ export namespace CardEngine {
         }
     }
     
-    export function getStandard52() : Deck {
+    export function getStandard52Deck() : Deck {
         let cards : PlayingCard[] = []; 
         for (let suit = 1; suit <= 4; suit++) {
             for (let value = CardValue.Ace; value <= CardValue.King; value++) {
@@ -81,6 +133,10 @@ export namespace CardEngine {
         return new Deck(cards);
     }
 
+    export function getEmptyDeck() : Deck {
+        return new Deck([]);
+    }
+
     export function getRandomCard() : CardEngine.PlayingCard {
         const suits = Object.values(CardSuit).filter(value => typeof value === 'string') as string[];
         const values = Object.values(CardValue).filter(value => typeof value === 'string') as string[];
@@ -88,58 +144,6 @@ export namespace CardEngine {
         const randomValue = values[Math.floor(Math.random() * values.length)];
         return new PlayingCard(CardSuit[randomSuit as keyof typeof CardSuit], CardValue[randomValue as keyof typeof CardValue]);
     }
-
-    export enum CardSuit {
-        Hearts = 1,
-        Diamonds,
-        Clubs,
-        Spades,
-    }
-    
-    export enum CardValue {
-        Ace = 1,
-        Two,
-        Three,
-        Four,
-        Five,
-        Six,
-        Seven,
-        Eight,
-        Nine,
-        Ten,
-        Jack,
-        Queen,
-        King
-    }
-
-    export enum ValueRule {
-        HighAce,
-        LowAce,
-        DuelAce
-    }
-    
-    const suitNames = new Map<CardSuit, string>([
-        [CardSuit.Hearts, "hearts"],
-        [CardSuit.Diamonds, "diamonds"],
-        [CardSuit.Clubs, "clubs"],
-        [CardSuit.Spades, "spades"],
-    ]);
-    
-    const valueNames = new Map<CardValue, string>([
-        [CardValue.Ace, "ace"],
-        [CardValue.Two, "two"],
-        [CardValue.Three, "three"],
-        [CardValue.Four, "four"],
-        [CardValue.Five, "five"],
-        [CardValue.Six, "six"],
-        [CardValue.Seven, "seven"],
-        [CardValue.Eight, "eight"],
-        [CardValue.Nine, "nine"],
-        [CardValue.Ten, "ten"],
-        [CardValue.Jack, "jack"],
-        [CardValue.Queen, "queen"],
-        [CardValue.King, "king"],
-    ]);
 }
 
 export default CardEngine;

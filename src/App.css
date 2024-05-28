@@ -40,6 +40,7 @@
 .PlayArea {
   height: 800px;
   padding: 20px;
+  border-radius: 20%;
 }
 
 .PlayingCard {
@@ -48,13 +49,26 @@
   background-color: whitesmoke;
   margin: 20px;
   align-self: center;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 5%;
+  user-select: none;
+  text-align: center;
 }
 
 .Deck {
   min-width: 300px;
   min-height: 400px;
-  background-color: gray;
+  background-color: darkgray;
   margin: 5px;
   align-content: center;
   justify-content: center;
+  width: fit-content;
+  height: fit-content;
+  border-radius: 5%;
+  transition-duration: 0.1s;
+}
+
+.Deck:hover {
+  background-color: lightblue;
 }

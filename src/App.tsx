@@ -1,13 +1,15 @@
 import React, {useState} from 'react';
 import './App.css';
 
-import { RenderedDeck, RenderedPlayingCard, DeckMode } from './CardRenderer';
+import { RenderedDeck, RenderedPlayingCard, DeckMode, DrawPile } from './CardRenderer';
 import CardEngine from './CardEngine';
 
 function App() {
 
-  let pile = CardEngine.getStandard52();
-
+  let pile = CardEngine.getStandard52Deck();
+  let empty = CardEngine.getEmptyDeck();
+  pile.shuffle();
+  
   document.title = "Card Engine"
 
   return (
@@ -18,7 +20,8 @@ function App() {
         </p>
       </header>
       <div className="PlayArea">
-        <RenderedDeck name="Draw Pile" initialDeck={pile} mode={DeckMode.TopOne}/>
+        <RenderedDeck name="Hand" initialDeck={empty} mode={DeckMode.TopOne}/>
+        <DrawPile name="Draw Pile" initialDeck={pile} mode={DeckMode.TopOne}></DrawPile>
       </div>
 
     </div>
