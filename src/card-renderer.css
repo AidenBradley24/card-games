@@ -1,0 +1,41 @@
+.PlayingCard {
+    width: 250px;
+    height: 350px;
+    background-color: whitesmoke;
+    margin: 20px;
+    border-radius: 5%;
+    user-select: none;
+    text-align: center;
+}
+  
+.Deck {
+    min-width: 300px;
+    min-height: 400px;
+    background-color: darkgray;
+    margin: 5px;
+    width: fit-content;
+    height: fit-content;
+    border-radius: 5%;
+    transition-duration: 0.1s;
+}
+
+.Deck:hover {
+    background-color: lightblue;
+}
+
+.hand {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.hand-card {
+    position: relative;
+    transition: transform 0.3s ease, z-index 0.3s ease;
+}
+
+.hand-card.hovered {
+    transform: scale(1.2);
+    z-index: 10;
+}

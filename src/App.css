@@ -2,17 +2,6 @@
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
 .App-header {
   background-color: #282c34;
   min-height: 50px;
@@ -24,18 +13,6 @@
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
 
 .PlayArea {
   height: 800px;
@@ -43,32 +20,12 @@
   border-radius: 20%;
 }
 
-.PlayingCard {
-  width: 250px;
-  height: 350px;
-  background-color: whitesmoke;
-  margin: 20px;
-  align-self: center;
-  margin-left: auto;
-  margin-right: auto;
-  border-radius: 5%;
-  user-select: none;
-  text-align: center;
-}
-
-.Deck {
-  min-width: 300px;
-  min-height: 400px;
-  background-color: darkgray;
-  margin: 5px;
-  align-content: center;
+.Deck-Collection {
+  align-items:center;
+  grid-template-columns: auto;
+  grid-template-rows: 1fr;
+  display: flex;
   justify-content: center;
-  width: fit-content;
-  height: fit-content;
-  border-radius: 5%;
-  transition-duration: 0.1s;
-}
-
-.Deck:hover {
-  background-color: lightblue;
+  align-items: center;
+  position: relative;
 }
