@@ -6,16 +6,15 @@ import './card-renderer.css'
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 
-export const RenderedPlayingCard: React.FC<IRenderedPlayingCardProps> = ({ card }) => {
+export const RenderedPlayingCard: React.FC<IRenderedPlayingCardProps> = ({ card, hidden }) => {
     return (
-      <div className="PlayingCard">
-        <p>{card.toString()}</p>
-      </div>
+        <img className="PlayingCard" src={'card_graphics/' + card.id(hidden) + '.svg'}/>
     );
 }
  
 interface IRenderedPlayingCardProps {
     card: CardEngine.PlayingCard;
+    hidden: boolean;
 }
 
 export enum DeckMode {
@@ -68,14 +67,14 @@ export class ManagedDeck extends React.Component<IManagedDeckProps, IManagedDeck
         const { deck } = this.state;
 
         let inner: JSX.Element;
+        const topCard = deck.peek();
 
         switch (mode) {
             case DeckMode.TopOne:
-                const topCard = deck.peek();
-                inner = topCard ? <RenderedPlayingCard card={topCard}/> : <span>No cards left</span>;
+                inner = topCard ? <RenderedPlayingCard card={topCard} hidden={false}/> : <span>No cards left</span>;
                 break;
             default:
-                inner = <span>hidden</span>;
+                inner = topCard ? <RenderedPlayingCard card={topCard} hidden={true}/> : <span>No cards left</span>;
                 break;
         }
 
@@ -143,9 +142,11 @@ interface IHandProps {
     onEmpty?: () => void;
 }
 
-export class ManagedHand extends React.Component<IHandProps, IManagedHandState> {
+export class ManagedHand extends React.Component<IHandProps, IManagedHandState> implements CardEngine.IManagedDeck {
+    public id: string;
     private onSelect;
     private cm;
+    private pickedCardIndex;
 
     constructor(props: IHandProps) {
         super(props);
@@ -153,16 +154,41 @@ export class ManagedHand extends React.Component<IHandProps, IManagedHandState> 
             deck: props.initialDeck,
             hoveredCardIndex: null,
         }
-        
+
+        this.id = props.engine.assignDeck(this as CardEngine.IManagedDeck);
         this.cm = createRef<ContextMenu>();
         this.onSelect = props.onSelect;
+        this.pickedCardIndex = -1;
     }
 
-    playCard = () => {
+    pickCard = () => {
         let index = this.state.hoveredCardIndex;
-        if(index !== null) {
-            if(this.onSelect !== undefined) this.onSelect(this.state.deck.list[index]);
+        if (index !== null && this.onSelect !== undefined) {
+            let card = this.state.deck.list[index];
+            this.pickedCardIndex = index;
+            if (this.props.engine.startPlay(card, () => {return this.drawCard() === null}))
+            this.onSelect(card);
         }
+    }
+
+    drawCard = () => {
+        if (this.pickedCardIndex >= 1) {
+            let card = this.state.deck.list[this.pickedCardIndex];
+            const newDeck = this.state.deck.clone();
+            if (newDeck.remove(card)) {
+                this.setState({ deck: newDeck });
+                return card;
+            }
+        }
+
+        return null;
+    }
+
+    depositCard = (card: CardEngine.PlayingCard) => {
+        const newDeck = this.state.deck.clone();
+        newDeck.insertTop(card);
+        this.setState( {deck: newDeck} );
+        return true;
     }
 
     render() {
@@ -193,9 +219,9 @@ export class ManagedHand extends React.Component<IHandProps, IManagedHandState> 
                     className={`hand-card ${this.state.hoveredCardIndex === index ? 'hovered' : ''}`}
                     onMouseEnter={() => this.setState({hoveredCardIndex: index})}
                     onMouseLeave={() => this.setState({hoveredCardIndex: null})}
-                    onClick={this.playCard}
+                    onClick={this.pickCard}
                     >
-                    <RenderedPlayingCard card={card} />
+                    <RenderedPlayingCard card={card} hidden={false} />
                     </div>
                 ))}
                 </div>

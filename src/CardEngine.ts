@@ -69,6 +69,55 @@ export namespace CardEngine {
             let offset = this.value - other.value;
             return offset;
         }
+
+        isRed() : boolean {
+            return this.suit == CardSuit.Diamonds || this.suit == CardSuit.Hearts;
+        }
+
+        id(hidden: boolean) : string {
+            if (hidden) {
+                return this.isRed() ? "2B" : "1B";
+            }
+
+            let valChar = '';
+            switch (this.value) {
+                case CardValue.Ace:
+                    valChar = 'A';
+                    break;
+                case CardValue.Ten:
+                    valChar = 'T';
+                    break;
+                case CardValue.Jack:
+                    valChar = 'J';
+                    break;
+                case CardValue.Queen:
+                    valChar = 'Q';
+                    break;
+                case CardValue.King:
+                    valChar = 'K';
+                    break;
+                default:
+                    valChar = this.value.toString();
+            }
+
+            let suitChar = '';
+            switch (this.suit) {
+                case CardSuit.Clubs:
+                    suitChar = 'C';
+                    break;
+                case CardSuit.Diamonds:
+                    suitChar = 'D';
+                    break;
+                case CardSuit.Hearts:
+                    suitChar = 'H';
+                    break;
+                case CardSuit.Spades:
+                    suitChar = 'S';
+                    break;
+            }
+
+            return valChar + suitChar;
+        }
     }
 
     export class Deck {
@@ -84,6 +133,10 @@ export namespace CardEngine {
     
         shuffle() {
             this.cards.sort(() => Math.random() - 0.5);
+        }
+
+        sort() {
+            this.cards.sort((a, b) => a.value - b.value)
         }
     
         draw() : PlayingCard | null {
@@ -121,6 +174,14 @@ export namespace CardEngine {
             }
             return decks;
         }
+
+        remove(card : PlayingCard) : boolean {
+            const index = this.cards.indexOf(card);
+            if (index > -1) {
+                this.cards.splice(index, 1);
+            }
+            return false;
+        }
     }
     
     export function getStandard52Deck() : Deck {
@@ -150,6 +211,8 @@ export namespace CardEngine {
         private deckMap: Map<string, IManagedDeck> = new Map();
         private cardInPlay?: PlayingCard;
         private cardCallback?: () => boolean;
+        
+        defaultTarget?: React.RefObject<IManagedDeck>;
 
         assignDeck(newDeck: IManagedDeck) : string {
             let id = (this.count++).toString();
@@ -163,6 +226,11 @@ export namespace CardEngine {
             }
             this.cardInPlay = card;
             this.cardCallback = callback;
+
+            if (this.defaultTarget !== undefined && this.defaultTarget.current != null) {
+                this.finishPlay(this.defaultTarget.current);
+            }
+
             return true;
         }
 
@@ -183,7 +251,6 @@ export namespace CardEngine {
     export interface IManagedDeck {
         id: string;
         drawCard?: () => PlayingCard | null;
-        playCard?: () => PlayingCard;
         depositCard: (card: PlayingCard) => boolean;
     }
 }
