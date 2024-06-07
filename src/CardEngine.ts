@@ -144,6 +144,48 @@ export namespace CardEngine {
         const randomValue = values[Math.floor(Math.random() * values.length)];
         return new PlayingCard(CardSuit[randomSuit as keyof typeof CardSuit], CardValue[randomValue as keyof typeof CardValue]);
     }
+
+    export class Engine {
+        private count = 0;
+        private deckMap: Map<string, IManagedDeck> = new Map();
+        private cardInPlay?: PlayingCard;
+        private cardCallback?: () => boolean;
+
+        assignDeck(newDeck: IManagedDeck) : string {
+            let id = (this.count++).toString();
+            this.deckMap.set(id, newDeck);
+            return id;
+        }
+
+        startPlay(card: PlayingCard, callback: () => boolean) {
+            if (this.isCardInPlay()) {
+                return false;
+            }
+            this.cardInPlay = card;
+            this.cardCallback = callback;
+            return true;
+        }
+
+        finishPlay(target: IManagedDeck) {
+            if (this.cardInPlay !== undefined && this.cardCallback !== undefined) {
+                if (this.cardCallback() && target.depositCard(this.cardInPlay)) {
+                    this.cardCallback = undefined;
+                    this.cardInPlay = undefined;
+                    return true;   
+                }
+            }
+            return false;
+        }
+
+        isCardInPlay = () => this.cardInPlay === null;
+    }
+
+    export interface IManagedDeck {
+        id: string;
+        drawCard?: () => PlayingCard | null;
+        playCard?: () => PlayingCard;
+        depositCard: (card: PlayingCard) => boolean;
+    }
 }
 
 export default CardEngine;

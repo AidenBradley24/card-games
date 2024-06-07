@@ -1,10 +1,13 @@
 import React, {useState} from 'react';
 import './App.css';
 
-import { RenderedDeck, RenderedPlayingCard, DeckMode, DrawPile, Hand } from './CardRenderer';
+import { ManagedDeck, RenderedPlayingCard, DeckMode, ManagedDrawPile, ManagedHand } from './CardRenderer';
 import CardEngine from './CardEngine';
+import { PrimeReactProvider, PrimeReactContext } from 'primereact/api';
 
 function App() {
+
+  var engine = new CardEngine.Engine();
 
   let pile = CardEngine.getStandard52Deck();
   let empty = CardEngine.getEmptyDeck();
@@ -14,7 +17,8 @@ function App() {
   document.title = "Card Engine"
 
   return (
-    <div className="App">
+    <PrimeReactProvider>
+      <div className="App">
       <header className="App-header">
         <p>
           Card Engine
@@ -22,13 +26,14 @@ function App() {
       </header>
       <div className="PlayArea">
         <div className='Deck-Collection'>
-        <RenderedDeck name="Hand" initialDeck={empty} mode={DeckMode.TopOne}/>
-        <DrawPile name="Draw Pile" initialDeck={pile} mode={DeckMode.TopOne} onDraw={(card) => console.log(card.toString())}></DrawPile>
+        <ManagedDeck engine={engine} name="Hand" initialDeck={empty} mode={DeckMode.TopOne}/>
+        <ManagedDrawPile engine={engine} name="Draw Pile" initialDeck={pile} mode={DeckMode.TopOne} onDraw={(card) => console.log(card.toString())}></ManagedDrawPile>
         </div>
-        <Hand name="Hand" initialDeck={basic} onSelect={(card) => console.log(card.toString())}></Hand>
+        <ManagedHand engine={engine} name="Hand" initialDeck={basic} onSelect={(card) => console.log(card.toString())}></ManagedHand>
       </div>
 
     </div>
+    </PrimeReactProvider>   
   );
 }
 
