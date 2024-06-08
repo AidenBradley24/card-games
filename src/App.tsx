@@ -1,26 +1,25 @@
-import React, {useRef, useState} from 'react';
+import { useRef } from 'react';
 import './App.css';
 
-import { ManagedDeck, RenderedPlayingCard, DeckVisibility, ManagedDrawPile, ManagedHand } from './CardRenderer';
-import CardEngine from './CardEngine';
-import { PrimeReactProvider, PrimeReactContext } from 'primereact/api';
+import * as C from './card-engine/CardEngine.Components';
+import * as E from './card-engine/CardEngine';
+import { PrimeReactProvider } from 'primereact/api';
 import { Toast } from 'primereact/toast';
-
 
 function App() {
 
   document.title = "Card Engine"
   let toast = useRef<Toast>(null);
 
-  var engine = new CardEngine.Engine();
-  let pile = CardEngine.getStandard52Deck();
-  let empty = CardEngine.getEmptyDeck();
+  var engine = new E.Engine();
+  let pile = E.getStandard52Deck();
+  let empty = E.getEmptyDeck();
   pile.shuffle();
   let basic = pile.massDraw(1, 5)?.[0] ?? empty;
 
-  let playerHand = useRef<ManagedHand>(null);
-  let playPile = useRef<ManagedDeck>(null);
-  let drawPile = useRef<ManagedDrawPile>(null);
+  let playerHand = useRef<C.ManagedHand>(null);
+  let playPile = useRef<C.ManagedDeck>(null);
+  let drawPile = useRef<C.ManagedDrawPile>(null);
 
   engine.turnTarget = playPile;
   engine.onFinishPlay = () => {
@@ -39,11 +38,11 @@ function App() {
         </header>
         <div className="PlayArea">
           <div className='Deck-Collection'>
-            <ManagedDeck ref={playPile} engine={engine} name="Play Pile" initialDeck={empty} mode={DeckVisibility.TopOne}/>
-            <ManagedDrawPile ref={drawPile} engine={engine} name="Draw Pile" initialDeck={pile} mode={DeckVisibility.Hidden} onDraw={(c) => playerHand.current?.depositCard(c)}></ManagedDrawPile>
+            <C.ManagedDeck ref={playPile} engine={engine} name="Play Pile" initialDeck={empty} mode={C.DeckVisibility.TopOne}/>
+            <C.ManagedDrawPile ref={drawPile} engine={engine} name="Draw Pile" initialDeck={pile} mode={C.DeckVisibility.Hidden} onDraw={(c) => playerHand.current?.depositCard(c)}/>
           </div>
           <div className='Hand-Collection'>
-            <ManagedHand ref={playerHand} engine={engine} name="Hand" initialDeck={basic} onSelect={(card) => console.log(card.toString())}></ManagedHand>
+            <C.ManagedHand ref={playerHand} engine={engine} name="Hand" initialDeck={basic} onSelect={(card) => console.log(card.toString())}/>
           </div>
         </div>
       </div>

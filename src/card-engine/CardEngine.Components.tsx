@@ -1,11 +1,11 @@
-import CardEngine from './CardEngine'
-import React, {createRef, useRef, useState} from 'react';
+import * as CardEngine from './CardEngine';
+
+import React, {createRef} from 'react';
 import { ContextMenu } from 'primereact/contextmenu'
 
 import './card-renderer.css'
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
-import { ScrollPanel } from 'primereact/scrollpanel';
 import { Carousel } from 'primereact/carousel';
 import { Button } from 'primereact/button';
 
@@ -20,7 +20,7 @@ export const RenderedPlayingCardPlaceholder: React.FC = () => {
         <div className='PlayingCard'></div>
     );
 }
- 
+    
 interface IRenderedPlayingCardProps {
     card: CardEngine.PlayingCard;
     hidden: boolean;
@@ -30,7 +30,7 @@ export enum DeckVisibility {
     Hidden,
     TopOne,
 }
-  
+    
 interface IManagedDeckProps {
     name: string;
     engine: CardEngine.Engine;
