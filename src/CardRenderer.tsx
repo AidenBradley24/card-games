@@ -14,23 +14,28 @@ export const RenderedPlayingCard: React.FC<IRenderedPlayingCardProps> = ({ card,
         <img className="PlayingCard" src={'card_graphics/' + card.id(hidden) + '.svg'}/>
     );
 }
+
+export const RenderedPlayingCardPlaceholder: React.FC = () => {
+    return (
+        <div className='PlayingCard'></div>
+    );
+}
  
 interface IRenderedPlayingCardProps {
     card: CardEngine.PlayingCard;
     hidden: boolean;
 }
 
-export enum DeckMode {
+export enum DeckVisibility {
     Hidden,
     TopOne,
-    Hand,
 }
   
 interface IManagedDeckProps {
     name: string;
     engine: CardEngine.Engine;
     initialDeck: CardEngine.Deck;
-    mode: DeckMode;
+    mode: DeckVisibility;
     onDraw?: (card: CardEngine.PlayingCard) => void;
     onEmpty?: () => void;
 }
@@ -85,7 +90,7 @@ export class ManagedDeck extends React.Component<IManagedDeckProps, IManagedDeck
         const topCard = deck.peek();
 
         switch (mode) {
-            case DeckMode.TopOne:
+            case DeckVisibility.TopOne:
                 inner = topCard ? <RenderedPlayingCard card={topCard} hidden={false}/> : <span>No cards left</span>;
                 break;
             default:
@@ -158,6 +163,7 @@ interface IHandProps {
 }
 
 export class ManagedHand extends React.Component<IHandProps, IManagedHandState> implements CardEngine.IManagedDeck {
+
     public id: string;
     private onSelect;
     private cm;
@@ -181,6 +187,7 @@ export class ManagedHand extends React.Component<IHandProps, IManagedHandState> 
         if (index !== null && this.onSelect !== undefined) {
             let card = this.state.deck.list[index];
             this.pickedCardIndex = index;
+            if (this.state.deck.size === 1) this.setState({ hoveredCardIndex: null });
             if (this.props.engine.startPlay(card, () => {return this.drawCard() !== null}))
             this.onSelect(card);
         }
@@ -219,6 +226,8 @@ export class ManagedHand extends React.Component<IHandProps, IManagedHandState> 
     }
 
     render() {
+        const HAND_SIZE = 6;
+
         const menuItems = [
             {
                 label: 'Pick', command: this.pickCard
@@ -234,7 +243,12 @@ export class ManagedHand extends React.Component<IHandProps, IManagedHandState> 
             }
         }
 
-        const itemTemplate = (bundle: CardBundle) => {
+        const itemTemplate = (bundle: CardBundle | null) => {
+
+            if (bundle === null) {
+                return (<RenderedPlayingCardPlaceholder/>)
+            }
+
             return (<div
                 onContextMenu={(e) => this.cm.current?.show(e)}
                 key={bundle.index}
@@ -246,13 +260,18 @@ export class ManagedHand extends React.Component<IHandProps, IManagedHandState> 
                 </div>);
         }
 
-        const items = this.state.deck.list.map((card, index) => new CardBundle(card, index));
+        let items = this.state.deck.list.map((card, index) => new CardBundle(card, index));
+        let placeholderEdge = Math.max(0, HAND_SIZE - items.length) / 2;
+        let leftEdge = Math.floor(placeholderEdge);
+        let rightEdge = Math.ceil(placeholderEdge);
+        items = Array(leftEdge).fill(null).concat(items);
+        items = items.concat(Array(rightEdge).fill(null));
         const footer = (<Button label='Sort' onClick={this.sort}/>);
 
         return (
             <div>
                 <ContextMenu model={menuItems} ref={this.cm}/>
-                <Carousel className='hand' numVisible={6} value={items} itemTemplate={itemTemplate} footer={footer}/>
+                <Carousel className='hand' numVisible={HAND_SIZE} value={items} itemTemplate={itemTemplate} footer={footer}/>
             </div>
         );       
     }

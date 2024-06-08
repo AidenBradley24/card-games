@@ -1,13 +1,17 @@
 import React, {useRef, useState} from 'react';
 import './App.css';
 
-import { ManagedDeck, RenderedPlayingCard, DeckMode, ManagedDrawPile, ManagedHand } from './CardRenderer';
+import { ManagedDeck, RenderedPlayingCard, DeckVisibility, ManagedDrawPile, ManagedHand } from './CardRenderer';
 import CardEngine from './CardEngine';
 import { PrimeReactProvider, PrimeReactContext } from 'primereact/api';
+import { Toast } from 'primereact/toast';
+
 
 function App() {
 
   document.title = "Card Engine"
+  let toast = useRef<Toast>(null);
+
   var engine = new CardEngine.Engine();
   let pile = CardEngine.getStandard52Deck();
   let empty = CardEngine.getEmptyDeck();
@@ -22,6 +26,7 @@ function App() {
   engine.onFinishPlay = () => {
     engine.turnTarget = playPile;
     console.log("finish play");
+    toast.current?.show({content: 'Your Turn'})
   }
 
   return (
@@ -34,14 +39,15 @@ function App() {
         </header>
         <div className="PlayArea">
           <div className='Deck-Collection'>
-            <ManagedDeck ref={playPile} engine={engine} name="Play Pile" initialDeck={empty} mode={DeckMode.TopOne}/>
-            <ManagedDrawPile ref={drawPile} engine={engine} name="Draw Pile" initialDeck={pile} mode={DeckMode.TopOne} onDraw={(c) => playerHand.current?.depositCard(c)}></ManagedDrawPile>
+            <ManagedDeck ref={playPile} engine={engine} name="Play Pile" initialDeck={empty} mode={DeckVisibility.TopOne}/>
+            <ManagedDrawPile ref={drawPile} engine={engine} name="Draw Pile" initialDeck={pile} mode={DeckVisibility.Hidden} onDraw={(c) => playerHand.current?.depositCard(c)}></ManagedDrawPile>
           </div>
           <div className='Hand-Collection'>
             <ManagedHand ref={playerHand} engine={engine} name="Hand" initialDeck={basic} onSelect={(card) => console.log(card.toString())}></ManagedHand>
           </div>
         </div>
       </div>
+      <Toast ref={toast} position='bottom-right' />
     </PrimeReactProvider>
   );
 }
