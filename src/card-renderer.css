@@ -1,16 +1,16 @@
 .PlayingCard {
-    width: 250px;
-    height: 350px;
     background-color: whitesmoke;
-    margin: 20px;
-    border-radius: 5%;
+    margin: 2px;
+    border-radius: 4.7%;
     user-select: none;
     text-align: center;
+    width: 150px;
+    height: 200px;
 }
   
 .Deck {
-    min-width: 300px;
-    min-height: 400px;
+    min-width: 150px;
+    min-height: 200px;
     background-color: darkgray;
     margin: 5px;
     width: fit-content;
@@ -23,19 +23,18 @@
     background-color: lightblue;
 }
 
-.hand {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-}
-
 .hand-card {
     position: relative;
     transition: transform 0.3s ease, z-index 0.3s ease;
+    margin-top: 12%;
+    margin-bottom: 12%;
 }
 
 .hand-card.hovered {
     transform: scale(1.2);
     z-index: 10;
+}
+
+.hand {
+    height: 380px;
 }

@@ -71,7 +71,7 @@ export namespace CardEngine {
         }
 
         isRed() : boolean {
-            return this.suit == CardSuit.Diamonds || this.suit == CardSuit.Hearts;
+            return this.suit === CardSuit.Diamonds || this.suit === CardSuit.Hearts;
         }
 
         id(hidden: boolean) : string {
@@ -179,6 +179,7 @@ export namespace CardEngine {
             const index = this.cards.indexOf(card);
             if (index > -1) {
                 this.cards.splice(index, 1);
+                return true;
             }
             return false;
         }
@@ -211,9 +212,10 @@ export namespace CardEngine {
         private deckMap: Map<string, IManagedDeck> = new Map();
         private cardInPlay?: PlayingCard;
         private cardCallback?: () => boolean;
-        
-        defaultTarget?: React.RefObject<IManagedDeck>;
 
+        turnTarget?: React.RefObject<IManagedDeck>;
+        onFinishPlay? : () => void;
+        
         assignDeck(newDeck: IManagedDeck) : string {
             let id = (this.count++).toString();
             this.deckMap.set(id, newDeck);
@@ -227,10 +229,7 @@ export namespace CardEngine {
             this.cardInPlay = card;
             this.cardCallback = callback;
 
-            if (this.defaultTarget !== undefined && this.defaultTarget.current != null) {
-                this.finishPlay(this.defaultTarget.current);
-            }
-
+            if (this.turnTarget !== undefined && this.turnTarget.current != null) this.finishPlay(this.turnTarget.current);
             return true;
         }
 
@@ -239,6 +238,8 @@ export namespace CardEngine {
                 if (this.cardCallback() && target.depositCard(this.cardInPlay)) {
                     this.cardCallback = undefined;
                     this.cardInPlay = undefined;
+                    this.turnTarget = undefined;
+                    if (this.onFinishPlay !== undefined) this.onFinishPlay();
                     return true;   
                 }
             }
@@ -252,6 +253,8 @@ export namespace CardEngine {
         id: string;
         drawCard?: () => PlayingCard | null;
         depositCard: (card: PlayingCard) => boolean;
+        sort: () => void;
+        shuffle: () => void;
     }
 }
 

@@ -5,6 +5,9 @@ import { ContextMenu } from 'primereact/contextmenu'
 import './card-renderer.css'
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
+import { ScrollPanel } from 'primereact/scrollpanel';
+import { Carousel } from 'primereact/carousel';
+import { Button } from 'primereact/button';
 
 export const RenderedPlayingCard: React.FC<IRenderedPlayingCardProps> = ({ card, hidden }) => {
     return (
@@ -60,6 +63,18 @@ export class ManagedDeck extends React.Component<IManagedDeckProps, IManagedDeck
         newDeck.insertTop(card);
         this.setState( {deck: newDeck} );
         return true;
+    }
+
+    sort = () => {
+        const newDeck = this.state.deck.clone();
+        newDeck.sort();
+        this.setState( {deck: newDeck} );
+    }
+
+    shuffle = () => {
+        const newDeck = this.state.deck.clone();
+        newDeck.shuffle();
+        this.setState( {deck: newDeck} );
     }
 
     render() {
@@ -166,13 +181,13 @@ export class ManagedHand extends React.Component<IHandProps, IManagedHandState> 
         if (index !== null && this.onSelect !== undefined) {
             let card = this.state.deck.list[index];
             this.pickedCardIndex = index;
-            if (this.props.engine.startPlay(card, () => {return this.drawCard() === null}))
+            if (this.props.engine.startPlay(card, () => {return this.drawCard() !== null}))
             this.onSelect(card);
         }
     }
 
     drawCard = () => {
-        if (this.pickedCardIndex >= 1) {
+        if (this.pickedCardIndex >= 0) {
             let card = this.state.deck.list[this.pickedCardIndex];
             const newDeck = this.state.deck.clone();
             if (newDeck.remove(card)) {
@@ -191,40 +206,53 @@ export class ManagedHand extends React.Component<IHandProps, IManagedHandState> 
         return true;
     }
 
+    sort = () => {
+        const newDeck = this.state.deck.clone();
+        newDeck.sort();
+        this.setState( {deck: newDeck} );
+    }
+
+    shuffle = () => {
+        const newDeck = this.state.deck.clone();
+        newDeck.shuffle();
+        this.setState( {deck: newDeck} );
+    }
+
     render() {
-        const items = [
+        const menuItems = [
             {
-                label: 'Options',
-                items: [
-                    { label: 'View', icon: 'pi pi-fw pi-search', command: () => { alert('View clicked'); } },
-                    { label: 'Delete', icon: 'pi pi-fw pi-times', command: () => { alert('Delete clicked'); } }
-                ]
+                label: 'Pick', command: this.pickCard
             },
-            {
-                label: 'Navigate',
-                items: [
-                    { label: 'Home', icon: 'pi pi-fw pi-home', url: 'http://www.primefaces.org/primereact' },
-                    { label: 'Company', icon: 'pi pi-fw pi-globe', command: () => { window.location.href = 'http://www.primefaces.org' } }
-                ]
-            }
         ];
+
+        class CardBundle {
+            card: CardEngine.PlayingCard;
+            index: number;
+            constructor(card: CardEngine.PlayingCard, index: number) {
+                this.card = card;
+                this.index = index;
+            }
+        }
+
+        const itemTemplate = (bundle: CardBundle) => {
+            return (<div
+                onContextMenu={(e) => this.cm.current?.show(e)}
+                key={bundle.index}
+                className={`hand-card ${this.state.hoveredCardIndex === bundle.index ? 'hovered' : ''}`}
+                onMouseEnter={() => this.setState({hoveredCardIndex: bundle.index})}
+                onMouseLeave={() => this.setState({hoveredCardIndex: null})}
+                onClick={this.pickCard}>
+                <RenderedPlayingCard card={bundle.card} hidden={false} />
+                </div>);
+        }
+
+        const items = this.state.deck.list.map((card, index) => new CardBundle(card, index));
+        const footer = (<Button label='Sort' onClick={this.sort}/>);
 
         return (
             <div>
-                <ContextMenu model={items} ref={this.cm}/>
-                <div className="hand" onContextMenu={(e) => this.cm.current?.show(e)}>
-                {this.state.deck.list.map((card, index) => (
-                    <div
-                    key={index}
-                    className={`hand-card ${this.state.hoveredCardIndex === index ? 'hovered' : ''}`}
-                    onMouseEnter={() => this.setState({hoveredCardIndex: index})}
-                    onMouseLeave={() => this.setState({hoveredCardIndex: null})}
-                    onClick={this.pickCard}
-                    >
-                    <RenderedPlayingCard card={card} hidden={false} />
-                    </div>
-                ))}
-                </div>
+                <ContextMenu model={menuItems} ref={this.cm}/>
+                <Carousel className='hand' numVisible={6} value={items} itemTemplate={itemTemplate} footer={footer}/>
             </div>
         );       
     }

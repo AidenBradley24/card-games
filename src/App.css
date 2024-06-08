@@ -29,3 +29,12 @@
   align-items: center;
   position: relative;
 }
+
+.Hand-Collection {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto;
+  justify-content: center;
+  width: 60%;
+  margin-left: 20%;
+  margin-right: 20%;
+}
