@@ -41,7 +41,7 @@ function App() {
         </header>
         <div className="PlayArea">
           <div className='Deck-Collection'>
-            <C.ManagedDeck ref={playPile} engine={engine} name="Play Pile" initialDeck={empty} mode={C.DeckVisibility.TopOne}/>
+            <C.ManagedDeck ref={playPile} engine={engine} name="Play Pile" initialDeck={empty} mode={C.DeckVisibility.TopTwoSecondHidden}/>
             <C.ManagedDrawPile ref={drawPile} engine={engine} name="Draw Pile" initialDeck={pile} mode={C.DeckVisibility.Hidden} onDraw={(c) => playerHand.current?.depositCard(c)}/>
           </div>
           <div className='Hand-Collection'>
