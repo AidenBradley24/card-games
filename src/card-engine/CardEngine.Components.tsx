@@ -37,14 +37,15 @@ interface IManagedDeckProps {
     name: string;
     engine: CardEngine.Engine;
     initialDeck: CardEngine.Deck;
-    mode: DeckVisibility;
-    onDraw?: (card: CardEngine.PlayingCard) => void;
+    visibility: DeckVisibility;
     onEmpty?: () => void;
+    onDraw?: (card: CardEngine.PlayingCard) => void;
+    visibleButtons?: boolean;
 }
-
 
 interface IManagedDeckState {
     deck: CardEngine.Deck;
+    visibility: DeckVisibility
 }
 
 interface IManagedHandState extends IManagedDeckState {
@@ -59,7 +60,7 @@ export class ManagedDeck extends React.Component<IManagedDeckProps, IManagedDeck
 
     constructor(props: IManagedDeckProps) {
         super(props);
-        this.state = {deck: props.initialDeck};
+        this.state = {deck: props.initialDeck, visibility: props.visibility};
         this.id = props.engine.assignDeck(this as CardEngine.IManagedDeck);
         this.cm = createRef<ContextMenu>();
         this.menuItems = [];
@@ -84,15 +85,19 @@ export class ManagedDeck extends React.Component<IManagedDeckProps, IManagedDeck
         this.setState( {deck: newDeck} );
     }
 
+    changeVisibility(value: DeckVisibility) {
+        this.setState( {visibility: value} );
+    }
+
     render() {
-        const { mode, name } = this.props;
-        const { deck } = this.state;
+        const { name } = this.props;
+        const { visibility, deck } = this.state;
 
         let inner: JSX.Element;
         const topCard = deck.peek(0);
         const secondCard = deck.peek(1);
 
-        switch (mode) {
+        switch (visibility) {
             case DeckVisibility.TopOne:
                 inner = topCard ? <RenderedPlayingCard card={topCard} hidden={false}/> : <span>No cards left</span>;
                 break;
@@ -100,7 +105,7 @@ export class ManagedDeck extends React.Component<IManagedDeckProps, IManagedDeck
             case DeckVisibility.TopTwoSecondHidden:
                 inner = topCard ? (secondCard 
                     ? (<div className='StackedCardParent'><div className='StackedCardOne'><RenderedPlayingCard card={topCard} hidden={false}/></div>
-                    <div className='StackedCardTwo'><RenderedPlayingCard card={secondCard} hidden={mode !== DeckVisibility.TopTwo}/></div></div>) 
+                    <div className='StackedCardTwo'><RenderedPlayingCard card={secondCard} hidden={visibility !== DeckVisibility.TopTwo}/></div></div>) 
                     : (<RenderedPlayingCard card={topCard} hidden={false}/>)) 
                     : <span>No cards left</span>;
                 break;
@@ -151,9 +156,12 @@ export class ManagedDrawPile extends ManagedDeck {
     }
 
     override render() { 
-        this.children = (
-            <button onClick={this.drawCard}>Draw</button>
-        );
+        if (this.props.visibleButtons) {
+            this.children = (
+                <button onClick={this.drawCard}>Draw</button>
+            );
+        }
+
 
         this.menuItems = [
             {
@@ -185,6 +193,7 @@ export class ManagedHand extends React.Component<IHandProps, IManagedHandState> 
         this.state = {
             deck: props.initialDeck,
             hoveredCardIndex: null,
+            visibility: DeckVisibility.Hidden
         }
 
         this.id = props.engine.assignDeck(this as CardEngine.IManagedDeck);

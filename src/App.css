@@ -12,29 +12,3 @@
   font-size: calc(10px + 2vmin);
   color: white;
 }
-
-
-.PlayArea {
-  height: 800px;
-  padding: 20px;
-  border-radius: 20%;
-}
-
-.Deck-Collection {
-  align-items:center;
-  grid-template-columns: auto;
-  grid-template-rows: 1fr;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-}
-
-.Hand-Collection {
-  grid-template-columns: 1fr;
-  grid-template-rows: auto;
-  justify-content: center;
-  width: 60%;
-  margin-left: 20%;
-  margin-right: 20%;
-}
