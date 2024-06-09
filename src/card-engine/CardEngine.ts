@@ -21,12 +21,6 @@ export enum CardValue {
     King
 }
 
-export enum ValueRule {
-    HighAce,
-    LowAce,
-    DuelAce
-}
-
 const suitNames = new Map<CardSuit, string>([
     [CardSuit.Hearts, "hearts"],
     [CardSuit.Diamonds, "diamonds"],
@@ -260,4 +254,8 @@ export interface IPlayer {
     beginTurn: () => void;
     onEndTurn: () => void;
     isGameOver: () => boolean;
+}
+
+export interface ICustomValue {
+    getTotalValues: (cards: PlayingCard[]) => number[];
 }

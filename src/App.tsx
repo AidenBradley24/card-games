@@ -5,8 +5,11 @@ import * as C from './card-engine/CardEngine.Components';
 import * as E from './card-engine/CardEngine';
 import { PrimeReactProvider } from 'primereact/api';
 import { Toast } from 'primereact/toast';
+import * as BJ from './blackjack/Blackjack';
 
 function App() {
+
+  BJ.test();
 
   document.title = "Card Engine"
   let toast = useRef<Toast>(null);
