@@ -1,7 +1,12 @@
 .PlayArea {
     height: 800px;
     padding: 20px;
-    border-radius: 20%;
+    background-color: #3a3a3a;
+    opacity: 0.8;
+    background-image:  linear-gradient(135deg, #4e4e4e 25%, transparent 25%), linear-gradient(225deg, #4e4e4e 25%, transparent 25%), linear-gradient(45deg, #4e4e4e 25%, transparent 25%), linear-gradient(315deg, #4e4e4e 25%, #3a3a3a 25%);
+    background-position:  10px 0, 10px 0, 0 0, 0 0;
+    background-size: 10px 10px;
+    background-repeat: repeat;
 }
 
 .Deck-Collection {
@@ -21,4 +26,7 @@
     width: 60%;
     margin-left: 20%;
     margin-right: 20%;
+    background-image:  linear-gradient(#4e4e4e 1px, transparent 1px), linear-gradient(to right, #4e4e4e 1px, #3a3a3a 1px);
+    background-size: 20px 20px;
+    padding-top: 50px;
 }

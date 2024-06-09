@@ -1,0 +1,103 @@
+.PlayingCard {
+    background-color: whitesmoke;
+    margin: 2px;
+    border-radius: 4.7%;
+    user-select: none;
+    text-align: center;
+    width: 150px;
+    height: 200px;
+}
+
+.PlayingCardPlaceholder {
+    background-color: transparent;
+    margin: 2px;
+    border-radius: 4.7%;
+    user-select: none;
+    text-align: center;
+    width: 150px;
+    height: 200px;
+}
+
+.StackedCardParent {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 200px;
+    height: 250px;
+}
+
+.StackedCardOne {
+    position: relative;
+    top: 0px;
+    left: -10px;
+    z-index: 2;
+}
+
+.StackedCardTwo {
+    position: relative;
+    top: -175px;
+    left: 10px;
+    z-index: 1;
+}
+  
+.Deck {
+    min-width: 150px;
+    min-height: 200px;
+    margin: 5px;
+    width: fit-content;
+    height: fit-content;
+    border-radius: 5%;
+    transition-duration: 0.1s;
+    background-color: #737373;
+    background-size: 10px 10px;
+    background-image: repeating-linear-gradient(45deg, #959595 0, #959595 1px, #737373 0, #737373 50%);
+    color: black;
+    font-size: large;
+    font-weight: bold;
+}
+
+.Deck:hover {
+    background-color: lightblue;
+}
+
+.hand-card {
+    position: relative;
+    transition: transform 0.3s ease, z-index 0.3s ease;
+    margin-top: 12%;
+    margin-bottom: 12%;
+}
+
+.hand-card.hovered {
+    transform: scale(1.2);
+    z-index: 10;
+}
+
+.hand {
+    height: 380px;
+}
+
+.cash-container {
+    height: 150px;
+    width: 250px;
+    background-color: lightgreen;
+    margin: 50px;
+    padding: 20px;
+    border-radius: 5%;
+    border-color: darkgreen;
+    border-style: solid;
+}
+
+.cash-display {
+    font-size: x-large;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    user-select: none;
+}
+
+.bets-display {
+    user-select: none;
+    font-size: medium;
+    text-align: left;
+    list-style: circle;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    margin-top: -5px;
+}

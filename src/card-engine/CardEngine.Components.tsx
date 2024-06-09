@@ -3,11 +3,13 @@ import * as CardEngine from './CardEngine';
 import React, {createRef} from 'react';
 import { ContextMenu } from 'primereact/contextmenu'
 
-import './card-renderer.css'
+import './components.css'
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import { Carousel } from 'primereact/carousel';
 import { Button } from 'primereact/button';
+import { InputNumber } from 'primereact/inputnumber';
+import { Message } from 'primereact/message';
 
 export const RenderedPlayingCard: React.FC<IRenderedPlayingCardProps> = ({ card, hidden }) => {
     return (
@@ -17,7 +19,7 @@ export const RenderedPlayingCard: React.FC<IRenderedPlayingCardProps> = ({ card,
 
 export const RenderedPlayingCardPlaceholder: React.FC = () => {
     return (
-        <div className='PlayingCard'></div>
+        <div className='PlayingCardPlaceholder'></div>
     );
 }
     
@@ -107,10 +109,10 @@ export class ManagedDeck extends React.Component<IManagedDeckProps, IManagedDeck
                     ? (<div className='StackedCardParent'><div className='StackedCardOne'><RenderedPlayingCard card={topCard} hidden={false}/></div>
                     <div className='StackedCardTwo'><RenderedPlayingCard card={secondCard} hidden={visibility !== DeckVisibility.TopTwo}/></div></div>) 
                     : (<RenderedPlayingCard card={topCard} hidden={false}/>)) 
-                    : <span>No cards left</span>;
+                    : <span>No cards</span>;
                 break;
             default:
-                inner = topCard ? <RenderedPlayingCard card={topCard} hidden={true}/> : <span>No cards left</span>;
+                inner = topCard ? <RenderedPlayingCard card={topCard} hidden={true}/> : <span>No cards</span>;
                 break;
         }
 
@@ -294,5 +296,92 @@ export class ManagedHand extends React.Component<IHandProps, IManagedHandState> 
                 <Carousel className='hand' numVisible={HAND_SIZE} value={items} itemTemplate={itemTemplate} footer={footer}/>
             </div>
         );       
+    }
+}
+
+interface IManagedMoneyProps {
+    startingMoney: number;
+    minBet: number;
+    maxBet: number;
+}
+
+interface IManagedMoneyState {
+    currentMoney: number;
+    bets: number[];
+    newBet: boolean;
+    newBetValue: number;
+    callback?: () => void;
+}
+
+const currencyFormat = new Intl.NumberFormat("en-us", { 
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0
+});
+
+export class ManagedMoney extends React.Component<IManagedMoneyProps, IManagedMoneyState> {
+
+    private totalBetCount = 0;
+    private betMap;
+
+    constructor(props: IManagedMoneyProps) {
+        super(props);
+        this.state = {currentMoney: props.startingMoney, bets: [], newBet: false, newBetValue: props.minBet }
+        this.betMap = new Map<number, number>();
+    }
+
+    createBet(onCreationCallback: (id: number) => void) {
+        const finishBet = () => {
+            const betId = this.totalBetCount++;
+            this.setState({ 
+                bets: this.state.bets.concat(this.state.newBetValue), 
+                currentMoney: this.state.currentMoney - this.state.newBetValue, 
+                newBet: false, 
+                callback: undefined
+            });
+            this.betMap.set(betId, this.state.newBetValue);
+            onCreationCallback(betId);
+        }
+        this.setState( { newBet: true, newBetValue: this.props.minBet, callback: finishBet });
+    }
+
+    resolveBet(betId: number, multiplier: number) {
+        const betValue = this.betMap.get(betId)!;
+        this.betMap.delete(betId);
+        let newBets = [...this.state.bets];
+        newBets.splice(newBets.indexOf(betValue), 1);
+        this.setState( { bets: newBets, currentMoney: this.state.currentMoney + betValue * multiplier });
+    }
+
+    tryAdjustBet(betId: number, multiplier: number) : boolean {
+        const betValue = this.betMap.get(betId)!;
+        const newBetValue = betValue * multiplier;
+        const neededMoney = newBetValue - betValue;
+        if (neededMoney < this.state.currentMoney) return false;
+
+        let newBets = [...this.state.bets];
+        newBets[newBets.indexOf(betValue)] = newBetValue;
+        this.betMap.set(betId, newBetValue);
+        this.setState( { bets: newBets, currentMoney: this.state.currentMoney - neededMoney });
+        return true;
+    }
+
+    render() {
+        const money = (<span className='cash-display'>${this.state.currentMoney}</span>);
+        const message = this.state.currentMoney >= this.state.newBetValue ? 
+        (<div><Message severity='success' text="Bet Good"/><Button label='BET' onClick={this.state.callback}/></div>)
+        : (<Message severity='error' text="Not Enough Money"/>);
+
+        if (this.state.newBet) {
+            return (<div className='cash-container'>{money}<InputNumber value={this.state.newBetValue} mode="currency" currency="USD" locale="en-US" maxFractionDigits={0}
+                onValueChange={(v) => this.setState( {newBetValue: v.value ?? this.props.minBet})} min={this.props.minBet} max={this.props.maxBet}/>{message}</div>);
+        }
+        else if (this.state.bets.length > 0) {
+            return (<div className='cash-container'>{money}<h3 className='bets-display'>Bets:</h3><ul className='bets-display'>{this.state.bets.map((bet) => {
+                return (<li>{currencyFormat.format(bet)}</li>);
+            })}</ul></div>)
+        }
+
+        return (<div className='cash-container'>{money}</div>);
     }
 }

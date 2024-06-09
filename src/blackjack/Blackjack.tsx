@@ -20,6 +20,7 @@ export const BlackJack: React.FC = () => {document.title = "Card Engine"
     const playerHand = useRef<C.ManagedHand>(null);
     const dealerHand = useRef<C.ManagedDeck>(null);
     const deck = useRef<C.ManagedDrawPile>(null);
+    const money = useRef<C.ManagedMoney>(null);
     const [gameActive, setGameActive] = useState(false);
 
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -33,6 +34,10 @@ export const BlackJack: React.FC = () => {document.title = "Card Engine"
 
     async function newGame() {
         setGameActive(true);
+        money.current?.createBet(startGame);     
+    }
+
+    async function startGame() {
         console.log("begin game");
 
         await sleep(1000);
@@ -58,6 +63,7 @@ export const BlackJack: React.FC = () => {document.title = "Card Engine"
                 <C.ManagedDeck ref={dealerHand} engine={engine} name="Dealer" initialDeck={empty} visibility={C.DeckVisibility.Hidden}/>
                 <C.ManagedDrawPile ref={deck} engine={engine} name="Deck" initialDeck={pile} visibility={C.DeckVisibility.Hidden}/>
                 <Menu model={menuItems}/>
+                <C.ManagedMoney ref={money} startingMoney={1000} minBet={2} maxBet={200}/>
             </div>
             <div className='Hand-Collection'>
                 <C.ManagedHand ref={playerHand} engine={engine} name="Hand" initialDeck={empty} onSelect={(card) => console.log(card.toString())}/>
