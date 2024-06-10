@@ -32,7 +32,9 @@ export enum DeckVisibility {
     Hidden,
     TopOne,
     TopTwo,
-    TopTwoSecondHidden
+    TopTwoSecondHidden,
+    TopTwoFirstHidden,
+    TopTwoFlipped
 }
     
 interface IManagedDeckProps {
@@ -68,6 +70,14 @@ export class ManagedDeck extends React.Component<IManagedDeckProps, IManagedDeck
         this.menuItems = [];
     }
 
+    getDeck = () => {
+        return this.state.deck;
+    }
+
+    setDeck = (newDeck: CardEngine.Deck) => {
+        this.setState( {deck: newDeck} );
+    }
+
     depositCard = (card: CardEngine.PlayingCard) => {
         const newDeck = this.state.deck.clone();
         newDeck.insertTop(card);
@@ -101,13 +111,17 @@ export class ManagedDeck extends React.Component<IManagedDeckProps, IManagedDeck
 
         switch (visibility) {
             case DeckVisibility.TopOne:
-                inner = topCard ? <RenderedPlayingCard card={topCard} hidden={false}/> : <span>No cards left</span>;
+                inner = topCard ? <RenderedPlayingCard card={topCard} hidden={false}/> : <span>No cards</span>;
                 break;
             case DeckVisibility.TopTwo:
             case DeckVisibility.TopTwoSecondHidden:
+            case DeckVisibility.TopTwoFirstHidden:
+            case DeckVisibility.TopTwoFlipped:
+                let flip = visibility === DeckVisibility.TopTwoFirstHidden || visibility === DeckVisibility.TopTwoFlipped;
+                let backHidden = visibility !== DeckVisibility.TopTwo && visibility !== DeckVisibility.TopTwoFlipped;
                 inner = topCard ? (secondCard 
-                    ? (<div className='StackedCardParent'><div className='StackedCardOne'><RenderedPlayingCard card={topCard} hidden={false}/></div>
-                    <div className='StackedCardTwo'><RenderedPlayingCard card={secondCard} hidden={visibility !== DeckVisibility.TopTwo}/></div></div>) 
+                    ? (<div className='StackedCardParent'><div className='StackedCardOne'><RenderedPlayingCard card={!flip ? topCard : secondCard} hidden={false}/></div>
+                    <div className='StackedCardTwo'><RenderedPlayingCard card={!flip ? secondCard : topCard} hidden={backHidden}/></div></div>) 
                     : (<RenderedPlayingCard card={topCard} hidden={false}/>)) 
                     : <span>No cards</span>;
                 break;
@@ -204,6 +218,14 @@ export class ManagedHand extends React.Component<IHandProps, IManagedHandState> 
         this.pickedCardIndex = -1;
     }
 
+    getDeck = () => {
+        return this.state.deck;
+    }
+
+    setDeck = (newDeck: CardEngine.Deck) => {
+        this.setState( {deck: newDeck} );
+    }
+
     pickCard = () => {
         let index = this.state.hoveredCardIndex;
         if (index !== null && this.onSelect !== undefined) {
@@ -289,11 +311,11 @@ export class ManagedHand extends React.Component<IHandProps, IManagedHandState> 
         items = Array(leftEdge).fill(null).concat(items);
         items = items.concat(Array(rightEdge).fill(null));
         const footer = (<Button label='Sort' onClick={this.sort}/>);
-
+        const content = this.state.deck.size === 0 ? <span>No cards</span> : <Carousel className='hand' numVisible={HAND_SIZE} value={items} itemTemplate={itemTemplate} footer={footer}/>;
         return (
-            <div>
+            <div className='hand'>
                 <ContextMenu model={menuItems} ref={this.cm}/>
-                <Carousel className='hand' numVisible={HAND_SIZE} value={items} itemTemplate={itemTemplate} footer={footer}/>
+                {content}
             </div>
         );       
     }

@@ -17,20 +17,111 @@ export const BlackJack: React.FC = () => {document.title = "Card Engine"
     
     pile.shuffle();
 
+    var isPlayerTurn = false;
+    var turnNumber = 0;
+
     const playerHand = useRef<C.ManagedHand>(null);
     const dealerHand = useRef<C.ManagedDeck>(null);
+    const handValue = new HandValue();
     const deck = useRef<C.ManagedDrawPile>(null);
     const money = useRef<C.ManagedMoney>(null);
     const [gameActive, setGameActive] = useState(false);
 
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    const drawCardPlayer = () => playerHand.current?.depositCard(deck.current?.drawCard()!);
+    const drawCardDealer = () => dealerHand.current?.depositCard(deck.current?.drawCard()!);
+    const getPlayerValue = () => beneficialValue(handValue.getTotalValues(playerHand.current?.getDeck().list!));
+    const getDealerValue = () => beneficialValue(handValue.getTotalValues(dealerHand.current?.getDeck().list!));
 
-    let menuItems = [ 
-        { label: "Fold", command: () => console.log("fold") },
-        { label: "Stand", command: () => console.log("stand") },
-        { label: "Double Down", command: () => console.log("double") },
-        { label: "Split", command: () => console.log("split") },
-    ];
+    const hitCommand = { label: "Hit", command: async () => {
+        isPlayerTurn = false;
+        updateCommands();
+        await sleep(500);
+        drawCardPlayer();
+        await sleep(500);
+        await dealerTurn();
+    }};
+    const standCommand = { label: "Stand", command: async () => {
+        isPlayerTurn = false;
+        updateCommands();
+        await sleep(500);
+        await dealerTurn();
+    }};
+    const doubleDownCommand = { label: "Double Down", command: async () => {
+        isPlayerTurn = false;
+        updateCommands();
+
+        if (money.current?.tryAdjustBet(0, 2)) {
+            console.log("DOUBLE DOWN");
+        }
+
+        await sleep(500);
+        drawCardPlayer();
+        await sleep(500);
+        await dealerTurn();
+    }};
+    const splitCommand = { label: "Split", command: async () => console.log("split") };
+
+    const [commands, setCommands] = useState<any[]>();
+
+    function updateCommands() {
+        let menuItems = [hitCommand, standCommand];
+        let cards = playerHand.current?.getDeck()?.list;
+
+        if (!isPlayerTurn || cards === undefined || cards.length < 2) {
+            setCommands(undefined);
+            return;
+        }
+
+        let valueOptions = handValue.getTotalValues(cards);
+        if (valueOptions.includes(9) || valueOptions.includes(10) || valueOptions.includes(11)) {
+            menuItems.push(doubleDownCommand);
+        }
+        if (turnNumber === 0 && cards[0].value === cards[1].value) {
+            menuItems.push(splitCommand);
+        }
+        
+        setCommands(menuItems);
+    }
+
+    async function dealerTurn() {
+        let playerValue = getPlayerValue();
+
+        if (playerValue > 21) {
+            console.log("player loses!");
+            money.current?.resolveBet(0, 0);
+            return;
+        }
+
+        dealerHand.current?.changeVisibility(C.DeckVisibility.TopTwoFlipped);
+        await sleep(2000);
+        dealerHand.current?.changeVisibility(C.DeckVisibility.TopTwoFirstHidden);
+
+        let dealerValue = getDealerValue();
+
+        if (dealerValue > 21) {
+            console.log("player wins!");
+            return;
+        }
+
+        if (dealerValue <= 16) {
+            drawCardDealer();
+        }
+
+        if (playerValue === dealerValue) {
+            console.log("push");
+            money.current?.resolveBet(0, 1);
+            return;
+        }
+        else if (playerValue > dealerValue) {
+            console.log("player wins!");
+            money.current?.resolveBet(0, 2);
+            return;
+        }
+
+        isPlayerTurn = true;
+        updateCommands();
+    }
 
     async function newGame() {
         setGameActive(true);
@@ -41,14 +132,17 @@ export const BlackJack: React.FC = () => {document.title = "Card Engine"
         console.log("begin game");
 
         await sleep(1000);
-        playerHand.current?.depositCard(deck.current?.drawCard()!);
+        drawCardPlayer();
         await sleep(500);
-        playerHand.current?.depositCard(deck.current?.drawCard()!);
+        drawCardPlayer();
         await sleep(500);
-        dealerHand.current?.depositCard(deck.current?.drawCard()!);
+        drawCardDealer();
         await sleep(500);
-        dealerHand.current?.depositCard(deck.current?.drawCard()!);
-        dealerHand.current?.changeVisibility(C.DeckVisibility.TopTwoSecondHidden);
+        drawCardDealer();
+        dealerHand.current?.changeVisibility(C.DeckVisibility.TopTwoFirstHidden);
+        await sleep(500);
+        isPlayerTurn = true;
+        updateCommands();
     }
 
     return (
@@ -62,7 +156,7 @@ export const BlackJack: React.FC = () => {document.title = "Card Engine"
             <div className='Deck-Collection'>
                 <C.ManagedDeck ref={dealerHand} engine={engine} name="Dealer" initialDeck={empty} visibility={C.DeckVisibility.Hidden}/>
                 <C.ManagedDrawPile ref={deck} engine={engine} name="Deck" initialDeck={pile} visibility={C.DeckVisibility.Hidden}/>
-                <Menu model={menuItems}/>
+                <Menu model={commands}/>
                 <C.ManagedMoney ref={money} startingMoney={1000} minBet={2} maxBet={200}/>
             </div>
             <div className='Hand-Collection'>
@@ -74,7 +168,7 @@ export const BlackJack: React.FC = () => {document.title = "Card Engine"
 }
 
 function beneficialValue(values: number[]) {
-    let best = 0;
+    let best = values[0];
     values.forEach(value => {
         if (value === 21) return 21;
         if (value > best && value < 21) best = value;

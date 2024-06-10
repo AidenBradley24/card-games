@@ -242,6 +242,8 @@ export class Engine {
 }
 
 export interface IManagedDeck {
+    getDeck: () => Deck | undefined;
+    setDeck: (deck: Deck) => void;
     id: string;
     drawCard?: () => PlayingCard | null;
     depositCard: (card: PlayingCard) => boolean;
