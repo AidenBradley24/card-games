@@ -10,10 +10,13 @@ function App() {
       <div className="App">
         <header className="App-header">
           <p>
-            Card Engine
+            Blackjack
           </p>
         </header>
         <BJ.BlackJack></BJ.BlackJack>
+        <footer className="App-footer">
+
+        </footer>
       </div>
     </PrimeReactProvider>
   );

@@ -342,7 +342,6 @@ const currencyFormat = new Intl.NumberFormat("en-us", {
 });
 
 export class ManagedMoney extends React.Component<IManagedMoneyProps, IManagedMoneyState> {
-
     private totalBetCount = 0;
     private betMap;
 
@@ -372,14 +371,14 @@ export class ManagedMoney extends React.Component<IManagedMoneyProps, IManagedMo
         this.betMap.delete(betId);
         let newBets = [...this.state.bets];
         newBets.splice(newBets.indexOf(betValue), 1);
-        this.setState( { bets: newBets, currentMoney: this.state.currentMoney + betValue * multiplier });
+        this.setState( { bets: newBets, currentMoney: this.state.currentMoney + Math.floor(betValue * multiplier) });
     }
 
     tryAdjustBet(betId: number, multiplier: number) : boolean {
         const betValue = this.betMap.get(betId)!;
         const newBetValue = betValue * multiplier;
         const neededMoney = newBetValue - betValue;
-        if (neededMoney < this.state.currentMoney) return false;
+        if (neededMoney > this.state.currentMoney) return false;
 
         let newBets = [...this.state.bets];
         newBets[newBets.indexOf(betValue)] = newBetValue;
@@ -389,7 +388,7 @@ export class ManagedMoney extends React.Component<IManagedMoneyProps, IManagedMo
     }
 
     render() {
-        const money = (<span className='cash-display'>${this.state.currentMoney}</span>);
+        const money = (<span className='cash-display'>{currencyFormat.format(this.state.currentMoney)}</span>);
         const message = this.state.currentMoney >= this.state.newBetValue ? 
         (<div><Message severity='success' text="Bet Good"/><Button label='BET' onClick={this.state.callback}/></div>)
         : (<Message severity='error' text="Not Enough Money"/>);
