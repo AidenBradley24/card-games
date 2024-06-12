@@ -2,9 +2,10 @@ import './App.css';
 
 import { PrimeReactProvider } from 'primereact/api';
 import * as BJ from './blackjack/Blackjack';
-import { NavLink, Routes, Route } from 'react-router-dom';
+import { NavLink, Routes, Route, useLocation } from 'react-router-dom';
 import { Menubar } from 'primereact/menubar';
 
+document.title = "Card Games";
 
 const HomePage = () => (
   <div className='home'>
@@ -29,6 +30,10 @@ const Main = () => (
 
 function App() {
 
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const contentOnly = searchParams.get('contentOnly') === 'true';
+
   let topMenuItems = [
     { label: "Home", url: "/" }
   ];
@@ -36,12 +41,18 @@ function App() {
   return (
     <PrimeReactProvider>
       <div className="App">
-        <header className="App-header">
-          <Menubar className='topmenu' model={topMenuItems} start={<p>Card Games</p>}/>
-        </header>
+        {
+          !contentOnly &&
+          <header className="App-header">
+            <Menubar className='topmenu' model={topMenuItems} start={<p>Card Games</p>}/>
+          </header>
+        }
         <Main/>
-        <footer className="App-footer">
-        </footer>
+        {
+          !contentOnly &&
+          <footer className="App-footer">
+          </footer>
+        }
       </div>
     </PrimeReactProvider>    
   );
