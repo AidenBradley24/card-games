@@ -75,9 +75,13 @@ export const BlackJack: React.FC = () => {
     }
 
     function switchPlayer(nextPlayer: number) {
-        if (players[currentPlayer] !== undefined) {
-            players[currentPlayer].myDeck = playerHand.current!.getDeck();
+        if (currentPlayer < 0) {
+            currentPlayer = players.length - 1;
         }
+        if (nextPlayer < 0) {
+            nextPlayer = 0;
+        }
+        players[currentPlayer].myDeck = playerHand.current!.getDeck();
         currentPlayer = nextPlayer;
         playerHand.current!.setDeck(players[currentPlayer].myDeck);
     }
@@ -91,7 +95,7 @@ export const BlackJack: React.FC = () => {
         }
 
         let wasLastPlayer = false;
-        if (currentPlayer == -1) {
+        if (currentPlayer === -1) {
             wasLastPlayer = true;
             currentPlayer = players.length - 1;
         }
@@ -99,6 +103,7 @@ export const BlackJack: React.FC = () => {
         if (getPlayerValue() > 21) {
             const player = players[currentPlayer];
             setGameMessage({ head: `${player.myName.toUpperCase()} BUSTS`, body: "(bet lost)" });
+            toast.current?.show({ severity: "error", content: `${player.myName.toUpperCase()} busts!` });
             players[currentPlayer].resolveBetAndRemove(0);
             nextTurn();
             return;
@@ -129,6 +134,7 @@ export const BlackJack: React.FC = () => {
         await sleep(500);
         await nextTurn();
     }};
+
     const standCommand = { label: "Stand", command: async () => {
         isPlayerTurn = false;
         updateCommands();
@@ -137,22 +143,24 @@ export const BlackJack: React.FC = () => {
         await sleep(500);
         await nextTurn();
     }};
+
     const doubleDownCommand = { label: "Double Down", command: async () => {
-        isPlayerTurn = false;
-        updateCommands();
         const player = players[currentPlayer];
         if (money.current?.tryAdjustBet(players[currentPlayer].myBet, 2)) {
             toast.current?.show({ severity: "info", content: `${player.myName} doubles down!` });
         }
         else {
-            toast.current?.show({ severity: "warn", content: "Unable to double down" });
-            toast.current?.show({ severity: "info", content: `${player.myName} hits` });
+            toast.current?.show({ severity: "warn", content: "Can't afford double down!" });
+            return;
         }
+        isPlayerTurn = false;
+        updateCommands();
         await sleep(500);
         drawCardPlayer();
         await sleep(500);
         await nextTurn();
     }};
+
     const surrenderCommand = { label: "Surrender", command: async () => {
         isPlayerTurn = false;
         updateCommands();
@@ -163,7 +171,34 @@ export const BlackJack: React.FC = () => {
         setGameMessage({ head: "SURRENDER", body: "(Half of bet returned)" });
         nextTurn();
     }};
-    const splitCommand = { label: "Split", command: async () => console.log("split") };
+
+    const splitCommand = { label: "Split", command: async () => {
+        const player = players[currentPlayer];
+        toast.current?.show({ severity: "info", content: `${player.myName} splits` });
+        const betValue = money.current!.getBetValue(player.myBet)!;
+        const newBet = money.current!.createBetWithValue(betValue);
+        if (newBet === undefined) {
+            toast.current?.show({ severity: "warn", content: "Can't afford new bet!" });
+            return;
+        }
+        isPlayerTurn = false;
+        updateCommands();
+        const [d1, d2] = player.myDeck.split(2)!;
+        player.myDeck = d1; 
+        const newPlayer = new Player(`${player.myName} (SPLIT)`, d2, newBet);
+        const newPlayerId = players.length;
+        players.push(newPlayer);
+        await sleep(500);
+        playerHand.current!.setDeck(player.myDeck);
+        await sleep(500);
+        drawCardPlayer();
+        await sleep(500);
+        switchPlayer(newPlayerId);
+        await sleep(500);
+        drawCardPlayer();
+        await sleep(500);
+        nextTurn();
+    }};
 
     const [commands, setCommands] = useState<any[]>();
 
@@ -176,13 +211,13 @@ export const BlackJack: React.FC = () => {
             return;
         }
 
-        toast.current?.show({ severity: "info", content: "Your turn!" });
+        toast.current?.show({ severity: "info", content: `${players[currentPlayer]?.myName} turn!` });
 
         let valueOptions = handValue.getTotalValues(cards);
         if (valueOptions.includes(9) || valueOptions.includes(10) || valueOptions.includes(11)) {
             menuItems.push(doubleDownCommand);
         }
-        if (turnNumber === 1 && cards[0].value === cards[1].value) {
+        if (cards.length === 2 && cards[0].value === cards[1].value) {
             menuItems.push(splitCommand);
         }
         if (turnNumber > 1) {
@@ -206,10 +241,20 @@ export const BlackJack: React.FC = () => {
         await sleep(2000);
         dealerHand.current?.changeVisibility(C.DeckVisibility.TopTwoFirstHidden);
 
-        const dealerValue = getDealerValue();
+        let dealerValue = getDealerValue();
+
+        if (dealerValue <= 16) {
+            drawCardDealer();
+            toast.current?.show({ severity: "info", content: "DEALER draws" });
+        } else {
+            toast.current?.show({ severity: "info", content: "DEALER stands" });
+        }
+
+        dealerValue = getDealerValue();
 
         if (dealerValue > 21) {
-            setGameMessage({ head: `DEALER BUSTS`, body: "(bets won!)" });
+            setGameMessage({ head: `DEALER busts!`, body: "(bets won!)" });
+            toast.current?.show({ severity: "success", content: `DEALER busts!` });
             players.forEach(p => {
                 p.resolveBetAndRemove(2);
             });
@@ -217,24 +262,19 @@ export const BlackJack: React.FC = () => {
             return;
         }
 
-        if (dealerValue <= 16) {
-            drawCardDealer();
-            toast.current?.show({ severity: "info", content: "Dealer draws" });
-        } else {
-            toast.current?.show({ severity: "info", content: "Dealer stands" });
-        }
-
         for (let i = 0; i < players.length; i++) {
             const player = players[i];
             const playerValue = beneficialValue(handValue.getTotalValues(player.myDeck.list!));
             if (playerValue === dealerValue) {
                 setGameMessage({ head: "PUSH", body: "(bet returned)" });
+                toast.current?.show({ severity: "warn", content: `PUSH` });
                 player.resolveBetAndRemove(1);
                 nextTurn();
                 return;
             }
             else if (playerValue > dealerValue) {
                 setGameMessage({ head: "EXCEEDED DEALER VALUE", body: "(bet won!)" });
+                toast.current?.show({ severity: "success", content: `DEALER exceeded!` });
                 player.resolveBetAndRemove(2);
                 nextTurn();
                 return;
@@ -282,10 +322,10 @@ export const BlackJack: React.FC = () => {
                 <C.ManagedDeck ref={dealerHand} engine={engine} name="Dealer" initialDeck={empty} visibility={C.DeckVisibility.Hidden}/>
                 <C.ManagedDrawPile ref={deck} engine={engine} name="Deck" initialDeck={pile} visibility={C.DeckVisibility.Hidden}/>
                 <Menu model={commands}/>
-                <C.ManagedMoney ref={money} startingMoney={1000} minBet={2} maxBet={10000}/>
+                <C.ManagedMoney ref={money} startingMoney={1000} minBet={1} maxBet={100000000}/>
             </div>
             <div className='Hand-Collection'>
-                <C.ManagedHand ref={playerHand} engine={engine} name="Hand" initialDeck={empty} onSelect={(card) => console.log(card.toString())}/>
+                <C.ManagedHand ref={playerHand} engine={engine} name="Hand" initialDeck={empty}/>
             </div>
             <Toast ref={toast} position='bottom-right'/>
         </div>

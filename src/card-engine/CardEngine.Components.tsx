@@ -6,14 +6,16 @@ import { ContextMenu } from 'primereact/contextmenu'
 import './components.css'
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
+
 import { Carousel } from 'primereact/carousel';
 import { Button } from 'primereact/button';
 import { InputNumber } from 'primereact/inputnumber';
 import { Message } from 'primereact/message';
+import { FloatLabel } from 'primereact/floatlabel';
 
 export const RenderedPlayingCard: React.FC<IRenderedPlayingCardProps> = ({ card, hidden }) => {
     return (
-        <img className="PlayingCard" src={'card_graphics/' + card.id(hidden) + '.svg'}/>
+        <img className="PlayingCard" src={'card_graphics/' + card.id(hidden) + '.svg'} alt={hidden ? `hidden ${card.isRed() ? 'red' : 'black'} card` : card.toString()}/>
     );
 }
 
@@ -177,14 +179,11 @@ export class ManagedDrawPile extends ManagedDeck {
                 <button onClick={this.drawCard}>Draw</button>
             );
         }
-
-
         this.menuItems = [
             {
                 label: 'Draw', command: this.drawCard
             }
         ]
-
         return super.render();
     }
 }
@@ -344,11 +343,13 @@ const currencyFormat = new Intl.NumberFormat("en-us", {
 export class ManagedMoney extends React.Component<IManagedMoneyProps, IManagedMoneyState> {
     private totalBetCount = 0;
     private betMap;
+    private inputRef;
 
     constructor(props: IManagedMoneyProps) {
         super(props);
         this.state = {currentMoney: props.startingMoney, bets: [], newBet: false, newBetValue: props.minBet }
         this.betMap = new Map<number, number>();
+        this.inputRef = createRef<InputNumber>();
     }
 
     createBet(onCreationCallback: (id: number) => void) {
@@ -364,6 +365,19 @@ export class ManagedMoney extends React.Component<IManagedMoneyProps, IManagedMo
             onCreationCallback(betId);
         }
         this.setState( { newBet: true, newBetValue: this.props.minBet, callback: finishBet });
+    }
+
+    createBetWithValue(value: number) {
+        if (value > this.state.currentMoney) {
+            return undefined;
+        }
+        const betId = this.totalBetCount++;
+        this.setState({ 
+            bets: this.state.bets.concat(value), 
+            currentMoney: this.state.currentMoney - value, 
+        });
+        this.betMap.set(betId, this.state.newBetValue);
+        return betId;
     }
 
     resolveBet(betId: number, multiplier: number) {
@@ -387,6 +401,10 @@ export class ManagedMoney extends React.Component<IManagedMoneyProps, IManagedMo
         return true;
     }
 
+    getBetValue(betId: number) {
+        return this.betMap.get(betId);
+    }
+
     render() {
         const money = (<span className='cash-display'>{currencyFormat.format(this.state.currentMoney)}</span>);
         const message = this.state.currentMoney >= this.state.newBetValue ? 
@@ -394,12 +412,27 @@ export class ManagedMoney extends React.Component<IManagedMoneyProps, IManagedMo
         : (<Message severity='error' text="Not Enough Money"/>);
 
         if (this.state.newBet) {
-            return (<div className='cash-container'>{money}<InputNumber value={this.state.newBetValue} mode="currency" currency="USD" locale="en-US" maxFractionDigits={0}
-                onValueChange={(v) => this.setState( {newBetValue: v.value ?? this.props.minBet})} min={this.props.minBet} max={this.props.maxBet}/>{message}</div>);
+            return (<div className='cash-container'>
+                {money}
+                <FloatLabel>
+                    <InputNumber
+                    autoFocus={true}
+                    ref={this.inputRef} 
+                    id="bet" 
+                    value={this.state.newBetValue} 
+                    mode="currency" 
+                    currency="USD" 
+                    locale="en-US" 
+                    maxFractionDigits={0}
+                    onValueChange={(v) => this.setState({ newBetValue: v.value ?? this.props.minBet })} 
+                    min={this.props.minBet}
+                    max={this.props.maxBet}/>
+                    <label htmlFor='bet'>Bet</label></FloatLabel>{message}
+                </div>);
         }
         else if (this.state.bets.length > 0) {
-            return (<div className='cash-container'>{money}<h3 className='bets-display'>Bets:</h3><ul className='bets-display'>{this.state.bets.map((bet) => {
-                return (<li>{currencyFormat.format(bet)}</li>);
+            return (<div className='cash-container'>{money}<h3 className='bets-display'>Bets:</h3><ul className='bets-display'>{this.state.bets.map((bet, index) => {
+                return (<li key={index}>{currencyFormat.format(bet)}</li>);
             })}</ul></div>)
         }
 
