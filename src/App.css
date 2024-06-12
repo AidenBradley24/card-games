@@ -6,11 +6,11 @@
   background-color: #282c34;
   min-height: 50px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  flex-direction: row;
+  align-items: left;
+  justify-content: left;
   color: white;
+  padding: calc(1px);
 }
 
 .App-footer {
@@ -22,4 +22,21 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+}
+
+.topmenu {
+  background: transparent;
+  border: 0;
+  color: white;
+  font-size: calc(10px + 1vmin);
+}
+
+.home {
+  width: 100%;
+  height: 100%;
+  background-color: green;
 }
