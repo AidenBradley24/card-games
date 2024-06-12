@@ -1,3 +1,9 @@
+/**
+ * Standard structures for a Card Game
+ * Author: Aiden Bradley
+ * MIT LICENSE
+ */
+
 export enum CardSuit {
     Hearts = 1,
     Diamonds,

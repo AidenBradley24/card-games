@@ -1,3 +1,10 @@
+/**
+ * Standard components for a Card Game using React.js
+ * Author: Aiden Bradley
+ * MIT LICENSE
+ */
+
+
 import * as CardEngine from './CardEngine';
 
 import React, {createRef} from 'react';

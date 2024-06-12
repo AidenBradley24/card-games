@@ -371,11 +371,3 @@ class HandValue implements E.ICustomValue {
         return totalValues;
     }
 }
-
-export function test() {
-    let valueGetter = new HandValue();
-    let cards = [new E.PlayingCard(E.CardSuit.Clubs, E.CardValue.Ace), new E.PlayingCard(E.CardSuit.Diamonds, E.CardValue.Ace)];
-    let value = valueGetter.getTotalValues(cards);
-    valueGetter.getTotalValues(cards)
-    console.log(value);
-}
