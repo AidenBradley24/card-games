@@ -2,16 +2,19 @@ import './App.css';
 
 import { PrimeReactProvider } from 'primereact/api';
 import * as BJ from './blackjack/Blackjack';
-import { NavLink, Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Menubar } from 'primereact/menubar';
+import { Menu } from 'primereact/menu';
 
 document.title = "Card Games";
 
+const gameMenuItems = [
+  { label: "Blackjack", url: '/blackjack' }
+];
+
 const HomePage = () => (
   <div className='home'>
-    <ul>
-      <li><NavLink to='/blackjack'>Blackjack</NavLink></li>
-    </ul>
+    <Menu model={gameMenuItems}/>
   </div>
 );
 
@@ -20,12 +23,12 @@ const BlackjackPage = () => (
 );
 
 const Main = () => (
-  <body>
+  <div className='content'>
     <Routes>
       <Route path='/' Component={HomePage}></Route>
       <Route path='/blackjack' Component={BlackjackPage}></Route>
     </Routes>  
-  </body> 
+  </div> 
 )
 
 function App() {
@@ -51,6 +54,9 @@ function App() {
         {
           !contentOnly &&
           <footer className="App-footer">
+            Created by Aiden Bradley
+            <br></br>
+            MIT LICENSE
           </footer>
         }
       </div>

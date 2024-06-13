@@ -1,5 +1,7 @@
 .App {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
 .App-header {
@@ -11,6 +13,7 @@
   justify-content: left;
   color: white;
   padding: calc(1px);
+  padding-left: 2%;
 }
 
 .App-footer {
@@ -18,14 +21,15 @@
   min-height: 50px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: left;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  font-size: calc(1px + 1vmin);
   color: white;
   position: fixed;
   left: 0;
   bottom: 0;
   width: 100%;
+  padding-left: 2%;
 }
 
 .topmenu {
@@ -38,5 +42,21 @@
 .home {
   width: 100%;
   height: 100%;
-  background-color: green;
+  width: 100%;
+  flex-grow: 1;
+  padding: 20px;
+  background-color: #00400a;
+  opacity: 0.8;
+  background-image:  linear-gradient(135deg, #33663b 25%, transparent 25%), linear-gradient(225deg, #33663b 25%, transparent 25%), linear-gradient(45deg, #33663b 25%, transparent 25%), linear-gradient(315deg, #33663b 25%, #00400a 25%);
+  background-position:  10px 0, 10px 0, 0 0, 0 0;
+  background-size: 10px 10px;
+  background-repeat: repeat;
+  text-align: center;
+}
+
+.content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }

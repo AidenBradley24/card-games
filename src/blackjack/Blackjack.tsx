@@ -327,7 +327,7 @@ export const BlackJack: React.FC = () => {
             <div className='Hand-Collection'>
                 <C.ManagedHand ref={playerHand} engine={engine} name="Hand" initialDeck={empty}/>
             </div>
-            <Toast ref={toast} position='bottom-right'/>
+            <Toast ref={toast} position='top-right'/>
         </div>
     );
 }
