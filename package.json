@@ -1,7 +1,7 @@
 {
   "name": "card-games",
   "version": "0.1.0",
-  "homepage": "https://aidenbradley24.github.io/card-games",
+  "homepage": "/card-games",
   "private": true,
   "dependencies": {
     "@types/jest": "^27.5.2",
