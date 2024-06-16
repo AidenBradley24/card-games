@@ -6,6 +6,7 @@
     text-align: center;
     width: 150px;
     height: 200px;
+    filter: drop-shadow(2px 2px 2px black);
 }
 
 .PlayingCardPlaceholder {
@@ -70,6 +71,7 @@
 .hand-card.hovered {
     transform: scale(1.2);
     z-index: 10;
+    filter: drop-shadow(5px 5px 5px black);
 }
 
 .hand {
@@ -80,18 +82,22 @@
 .cash-container {
     height: 150px;
     width: 250px;
-    background-color: lightgreen;
+    background-color: whitesmoke;
+    backdrop-filter: blur(2px);
     margin: 50px;
     padding: 20px;
-    border-radius: 5%;
-    border-color: darkgreen;
-    border-style: solid;
+    border-radius: 2%;
 }
 
 .cash-display {
     font-size: x-large;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
     user-select: none;
+}
+
+.bet-maker {
+    padding: 5px;
+    margin-right: 10px;
 }
 
 .bets-display {

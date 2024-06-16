@@ -34,10 +34,6 @@ function App() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const contentOnly = searchParams.get('contentOnly') === 'true';
-
-  let topMenuItems = [
-    { label: "Home", url: "/" }
-  ];
   
   return (
     <PrimeReactProvider>
@@ -45,21 +41,16 @@ function App() {
         {
           !contentOnly &&
           <header className="App-header">
-            <div className='topmenu'>
-              <a className='title' href={`${process.env.PUBLIC_URL}/#`}>Card Games</a>
-              <span className='vl'>|</span>
-              <a className='toplink' href={'/'}>Home</a>
+            <a className='title' href={`${process.env.PUBLIC_URL}/#`}>Card Games</a>
+            <span className='vl'>|</span>
+            <a className='toplink' href={'/'}>Home</a>
+            <div className="copyright">
+              <a className='footer-text' href='https://github.com/AidenBradley24'>Created by Aiden Bradley</a> 
+              <a className='footer-text' href='https://github.com/AidenBradley24/card-games/blob/master/LICENSE'>MIT LICENSE</a>    
             </div>
           </header>
         }
         <Main/>
-        {
-          !contentOnly &&
-          <footer className="App-footer">
-            <a className='footer-text' href='https://github.com/AidenBradley24'>Created by Aiden Bradley</a> 
-            <a className='footer-text' href='https://github.com/AidenBradley24/card-games/blob/master/LICENSE'>MIT LICENSE</a>             
-          </footer>
-        }
       </div>
     </PrimeReactProvider>    
   );

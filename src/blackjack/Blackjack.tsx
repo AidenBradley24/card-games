@@ -321,13 +321,13 @@ export const BlackJack: React.FC = () => {
             <div className='Deck-Collection'>
                 <C.ManagedDeck ref={dealerHand} engine={engine} name="Dealer" initialDeck={empty} visibility={C.DeckVisibility.Hidden}/>
                 <C.ManagedDrawPile ref={deck} engine={engine} name="Deck" initialDeck={pile} visibility={C.DeckVisibility.Hidden}/>
-                <Menu model={commands}/>
                 <C.ManagedMoney ref={money} startingMoney={1000} minBet={1} maxBet={100000000}/>
+                <Menu className='OptionsMenu' model={commands}/>
             </div>
             <div className='Hand-Collection'>
                 <C.ManagedHand ref={playerHand} engine={engine} name="Hand" initialDeck={empty}/>
             </div>
-            <Toast ref={toast} position='top-right'/>
+            <Toast ref={toast} position='bottom-right'/>
         </div>
     );
 }

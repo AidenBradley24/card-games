@@ -276,7 +276,7 @@ export class ManagedHand extends React.Component<IHandProps, IManagedHandState> 
     }
 
     render() {
-        const HAND_SIZE = 6;
+        const HAND_SIZE = window.innerWidth > 1000 ? 6 : 2;
 
         const menuItems = [
             {
@@ -415,14 +415,14 @@ export class ManagedMoney extends React.Component<IManagedMoneyProps, IManagedMo
     render() {
         const money = (<span className='cash-display'>{currencyFormat.format(this.state.currentMoney)}</span>);
         const message = this.state.currentMoney >= this.state.newBetValue ? 
-        (<div><Message severity='success' text="Bet Good"/><Button label='BET' onClick={this.state.callback}/></div>)
-        : (<Message severity='error' text="Not Enough Money"/>);
+        (<div><Message className='bet-maker' severity='success' text="Bet Good"/><Button className='bet-maker' label='BET' onClick={this.state.callback}/></div>)
+        : (<Message className='bet-maker' severity='error' text="Not Enough Money"/>);
 
         if (this.state.newBet) {
             return (<div className='cash-container'>
                 {money}
                 <FloatLabel>
-                    <InputNumber
+                    <InputNumber className='bet-maker'
                     autoFocus={true}
                     ref={this.inputRef} 
                     id="bet" 
