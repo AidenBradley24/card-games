@@ -9,7 +9,7 @@ import { Menu } from 'primereact/menu';
 document.title = "Card Games";
 
 const gameMenuItems = [
-  { label: "Blackjack", url: '/blackjack' }
+  { label: "Blackjack", url: '/#blackjack' }
 ];
 
 const HomePage = () => (
@@ -32,13 +32,12 @@ const Main = () => (
 )
 
 function App() {
-
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const contentOnly = searchParams.get('contentOnly') === 'true';
 
   let topMenuItems = [
-    { label: "Home", url: "/" }
+    { label: "Home", url: "/#" }
   ];
   
   return (

@@ -22,7 +22,7 @@ import { FloatLabel } from 'primereact/floatlabel';
 
 export const RenderedPlayingCard: React.FC<IRenderedPlayingCardProps> = ({ card, hidden }) => {
     return (
-        <img className="PlayingCard" src={'card_graphics/' + card.id(hidden) + '.svg'} alt={hidden ? `hidden ${card.isRed() ? 'red' : 'black'} card` : card.toString()}/>
+        <img className="PlayingCard" src={`${process.env.PUBLIC_URL}/card_graphics/` + card.id(hidden) + '.svg'} alt={hidden ? `hidden ${card.isRed() ? 'red' : 'black'} card` : card.toString()}/>
     );
 }
 
