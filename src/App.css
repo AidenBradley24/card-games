@@ -32,11 +32,13 @@
   padding-left: 2%;
 }
 
-.topmenu {
-  background: transparent;
-  border: 0;
+.footer-text {
   color: white;
-  font-size: calc(10px + 1vmin);
+  text-decoration: none;
+}
+
+.footer-text:hover {
+  color: green;
 }
 
 .home {
@@ -59,4 +61,41 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+.topmenu {
+  background: transparent;
+  border: 0;
+  font-size: calc(10px + 1vmin);
+  float: left;
+  overflow: hidden;
+  padding-top: calc(10px);
+}
+
+.title {
+  text-decoration: none;
+  color: white;
+  user-select: none;
+  padding: 5px;
+}
+
+.title:hover {
+  color: green;
+}
+
+.toplink {
+  text-decoration: none;
+  user-select: none;
+  color: gray;
+}
+
+.toplink:hover {
+  color: green;
+}
+
+.vl {
+  height: calc(15px + 2vmin);
+  padding-left: 20px;
+  padding-right: 20px;
+  user-select: none;
 }

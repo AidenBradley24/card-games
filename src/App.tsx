@@ -3,13 +3,12 @@ import './App.css';
 import { PrimeReactProvider } from 'primereact/api';
 import * as BJ from './blackjack/Blackjack';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { Menubar } from 'primereact/menubar';
 import { Menu } from 'primereact/menu';
 
 document.title = "Card Games";
 
 const gameMenuItems = [
-  { label: "Blackjack", url: '/#blackjack' }
+  { label: "Blackjack", url: `${process.env.PUBLIC_URL}/#blackjack` }
 ];
 
 const HomePage = () => (
@@ -37,7 +36,7 @@ function App() {
   const contentOnly = searchParams.get('contentOnly') === 'true';
 
   let topMenuItems = [
-    { label: "Home", url: "/#" }
+    { label: "Home", url: "/" }
   ];
   
   return (
@@ -46,16 +45,19 @@ function App() {
         {
           !contentOnly &&
           <header className="App-header">
-            <Menubar className='topmenu' model={topMenuItems} start={<p>Card Games</p>}/>
+            <div className='topmenu'>
+              <a className='title' href={`${process.env.PUBLIC_URL}/#`}>Card Games</a>
+              <span className='vl'>|</span>
+              <a className='toplink' href={'/'}>Home</a>
+            </div>
           </header>
         }
         <Main/>
         {
           !contentOnly &&
           <footer className="App-footer">
-            Created by Aiden Bradley
-            <br></br>
-            MIT LICENSE
+            <a className='footer-text' href='https://github.com/AidenBradley24'>Created by Aiden Bradley</a> 
+            <a className='footer-text' href='https://github.com/AidenBradley24/card-games/blob/master/LICENSE'>MIT LICENSE</a>             
           </footer>
         }
       </div>
