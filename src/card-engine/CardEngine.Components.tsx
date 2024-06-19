@@ -61,10 +61,6 @@ interface IManagedDeckState {
     visibility: DeckVisibility
 }
 
-interface IManagedHandState extends IManagedDeckState {
-    hoveredCardIndex : number | null;
-}
-
 export class ManagedDeck extends React.Component<IManagedDeckProps, IManagedDeckState> implements CardEngine.IManagedDeck {
     public id: string;
     protected children? : React.ReactNode;
@@ -143,7 +139,7 @@ export class ManagedDeck extends React.Component<IManagedDeckProps, IManagedDeck
             <div>
                 <ContextMenu model={this.menuItems} ref={this.cm}/>
                 <div className="Deck" onContextMenu={(e) => this.cm.current?.show(e)}>
-                    <span>{name}: {deck.size}</span>
+                    <span>{name} [{deck.size}]</span>
                     <div>{inner}</div>
                     <div>
                         {/* options section */}
@@ -201,6 +197,10 @@ interface IHandProps {
     initialDeck: CardEngine.Deck;
     onSelect?: (card: CardEngine.PlayingCard) => void;
     onEmpty?: () => void;
+}
+
+interface IManagedHandState extends IManagedDeckState {
+    hoveredCardIndex : number | null;
 }
 
 export class ManagedHand extends React.Component<IHandProps, IManagedHandState> implements CardEngine.IManagedDeck {
@@ -322,6 +322,113 @@ export class ManagedHand extends React.Component<IHandProps, IManagedHandState> 
             <div className='hand'>
                 <ContextMenu model={menuItems} ref={this.cm}/>
                 {content}
+            </div>
+        );       
+    }
+}
+
+interface IManagedOpponentHandState extends IManagedDeckState {
+    visibleCards: Set<CardEngine.PlayingCard>;
+}
+
+export class ManagedOpponentHand extends React.Component<IHandProps, IManagedOpponentHandState> implements CardEngine.IManagedDeck {
+
+    public id: string;
+    private onSelect;
+    private cm;
+    private pickedCardIndex;
+
+    constructor(props: IHandProps) {
+        super(props);
+        this.state = {
+            deck: props.initialDeck,
+            visibility: DeckVisibility.Hidden,
+            visibleCards: new Set<CardEngine.PlayingCard>()
+        }
+
+        this.id = props.engine.assignDeck(this as CardEngine.IManagedDeck);
+        this.cm = createRef<ContextMenu>();
+        this.onSelect = props.onSelect;
+        this.pickedCardIndex = -1;
+    }
+
+    getDeck = () => {
+        return this.state.deck;
+    }
+
+    setDeck = (newDeck: CardEngine.Deck) => {
+        this.setState( {deck: newDeck} );
+    }
+
+    drawCard = () => {
+        if (this.pickedCardIndex >= 0) {
+            let card = this.state.deck.list[this.pickedCardIndex];
+            const newDeck = this.state.deck.clone();
+            if (newDeck.remove(card)) {
+                this.setState({ deck: newDeck });
+                return card;
+            }
+        }
+
+        return null;
+    }
+
+    depositCard = (card: CardEngine.PlayingCard) => {
+        const newDeck = this.state.deck.clone();
+        newDeck.insertTop(card);
+        this.setState( {deck: newDeck} );
+        return true;
+    }
+
+    sort = () => {
+        const newDeck = this.state.deck.clone();
+        newDeck.sort();
+        this.setState( {deck: newDeck} );
+    }
+
+    shuffle = () => {
+        const newDeck = this.state.deck.clone();
+        newDeck.shuffle();
+        this.setState( {deck: newDeck} );
+    }
+
+    showCards = (...cards: CardEngine.PlayingCard[]) => {
+        let tempSet = { ...this.state.visibleCards };
+        cards.forEach(card => {
+            tempSet.add(card);
+        });
+        this.setState({ visibleCards: tempSet });
+    }
+
+    showAllCards = () => {
+        let tempSet = { ...this.state.visibleCards };
+        this.state.deck.list.forEach((card) => {
+            tempSet.add(card);
+        });
+        this.setState({ visibleCards: tempSet });
+    }
+
+    hideCards = (...cards: CardEngine.PlayingCard[]) => {
+        let tempSet = { ...this.state.visibleCards };
+        cards.forEach(card => {
+            tempSet.delete(card);
+        });
+        this.setState({ visibleCards: tempSet });
+    }
+
+    hideAllCards = () => {
+        let tempSet = { ...this.state.visibleCards };
+        tempSet.clear();
+        this.setState({ visibleCards: tempSet });
+    }
+
+    render() {
+        return (
+            <div className='opp-hand'>
+                <span>{this.props.name} [{this.state.deck.size}]</span>
+                <div className='opp-hand-cards'>
+                    {this.state.deck.list.map((card) => <div className='opp-hand-card'><RenderedPlayingCard card={card} hidden={!this.state.visibleCards.has(card)}/></div>)}
+                </div>
             </div>
         );       
     }

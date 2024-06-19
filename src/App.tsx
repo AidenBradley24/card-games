@@ -1,15 +1,13 @@
 import './App.css';
 
 import { PrimeReactProvider } from 'primereact/api';
-import * as BJ from './blackjack/Blackjack';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Menu } from 'primereact/menu';
 
-document.title = "Card Games";
+import * as BJ from './games/Blackjack';
+import * as FISH from './games/GoFish';
 
-const gameMenuItems = [
-  { label: "Blackjack", url: `${process.env.PUBLIC_URL}/#blackjack` }
-];
+document.title = "Card Games";
 
 const HomePage = () => (
   <div className='home'>
@@ -17,8 +15,17 @@ const HomePage = () => (
   </div>
 );
 
+const gameMenuItems = [
+  { label: "Blackjack", url: `${process.env.PUBLIC_URL}/#blackjack` },
+  { label: "Go Fish", url: `${process.env.PUBLIC_URL}/#go-fish` }
+];
+
 const BlackjackPage = () => (
-  <BJ.BlackJack></BJ.BlackJack>
+  <BJ.BlackJack/>
+);
+
+const GoFishPage = () => (
+  <FISH.GoFish/>
 );
 
 const Main = () => (
@@ -26,6 +33,7 @@ const Main = () => (
     <Routes>
       <Route path='/' Component={HomePage}></Route>
       <Route path='/blackjack' Component={BlackjackPage}></Route>
+      <Route path='/go-fish' Component={GoFishPage}></Route>
     </Routes>  
   </div> 
 )

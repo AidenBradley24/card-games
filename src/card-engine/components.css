@@ -79,6 +79,40 @@
     font-size: xx-large;
 }
 
+.opp-hand {
+    min-width: 150px;
+    min-height: 200px;
+    margin: 5px;
+    width: fit-content;
+    height: fit-content;
+    border-radius: 5%;
+    transition-duration: 0.1s;
+    background-color: #737373;
+    background-size: 10px 10px;
+    background-image: repeating-linear-gradient(45deg, #959595 0, #959595 1px, #737373 0, #737373 50%);
+    color: black;
+    font-size: large;
+    font-weight: bold;
+}
+
+.opp-hand-cards {
+    width: 200px;
+    height: 250px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin: 10px;
+    align-items: top;
+}
+
+.opp-hand-card {
+    z-index: 2;
+    transform: scale(0.25);
+    transform-origin: center;
+    padding: 5px;
+    width: 10px;
+    height: 20px;
+}
+
 .cash-container {
     height: 150px;
     width: 250px;
