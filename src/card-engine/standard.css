@@ -57,3 +57,14 @@
 .OptionsMenu {
     width: 200px;
 }
+
+.InfoPanel {
+    background-color: whitesmoke;
+    width: 200px;
+    height: 300px;
+    border-radius: 5%;
+    color: black;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    padding: 10px;
+    text-align: left;
+}

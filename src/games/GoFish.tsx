@@ -34,15 +34,21 @@ export const GoFish: React.FC = () => {
         }
     }
 
-    const deck = useRef<C.ManagedDrawPile>(null);
+    const drawPile = useRef<C.ManagedDrawPile>(null);
     const [gameActive, setGameActive] = useState(false);
 
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
     const [gameMessage, setGameMessage] = useState({ head: "GO FISH", body: "A simple card game where the goal is to get as many books of cards as possible." });
+    const [bigMessage, setBigMessage] = useState("");
 
     var players : Player[] = [];
+    const [playersDisplay, setPlayersDisplay] = useState<Player[]>([]);
     var currentPlayer = -1;
+    const [currentPlayerDisplay, setCurrentPlayerDisplay] = useState(-1);
+
+    const [bookManager, setBookManager] = useState<E.BookManager | null>(null);
+    const [bookList, setBookList] = useState("books");
 
     class Player {
         public managedDeck: RefObject<E.IManagedDeck>;
@@ -58,7 +64,10 @@ export const GoFish: React.FC = () => {
         }
 
         get opponentHand() {
-            return this.managedDeck!.current as C.ManagedOpponentHand;
+            if (this.managedDeck!.current instanceof C.ManagedOpponentHand) 
+                return this.managedDeck!.current as C.ManagedOpponentHand;
+            else
+                return undefined;
         }
     }
 
@@ -77,6 +86,7 @@ export const GoFish: React.FC = () => {
         } 
 
         let player = players[currentPlayer];
+        setCurrentPlayerDisplay(currentPlayer);
         toast.current?.show({ severity: "info", content: `${player.myName} turn!` });
 
         if (player.myName.startsWith("PLAYER")) {
@@ -93,32 +103,92 @@ export const GoFish: React.FC = () => {
     }
 
     async function opponentTurn() {
-
+        
     }
 
     function playerSelect(value: E.CardValue) {
         console.log(`value ${value.toString()}`);
+        runTurn(value);
     }
 
+    async function runTurn(check: E.CardValue) {
+        const player = playersDisplay[currentPlayerDisplay];
+        const targetPlayer = playersDisplay[target];
+        setTarget(-1);
+        let deck = targetPlayer.managedDeck.current!.getDeck()!.clone();
+        let playerDeck = player.managedDeck.current!.getDeck()!.clone();
+        let matches : E.PlayingCard[] = [];
+        for (let i = 0; i < deck.size; i++) {
+            const card = deck.peek(i);
+            if (check === card.value) matches.push(card);
+        }
+
+        await sleep(100);
+
+        if (matches.length === 0) {
+            toast.current?.show({ severity: "error", content: `${targetPlayer.myName} had no ${E.pluralValueNames.get(check)}!` });
+            setBigMessage("GO FISH");
+            await sleep(1000);
+            setBigMessage("");
+
+            const draw = drawPile.current!.drawCard();
+
+            if (draw === null) {
+                toast.current?.show({ severity: "error", content: `${targetPlayer.myName} is out of the game!` });
+            }
+            else {
+                player.managedDeck.current!.depositCard(draw);
+            }
+        }
+        else {
+            toast.current?.show({ severity: "success", content: `${targetPlayer.myName} had ${matches.length}${matches.length === 1 ? E.valueNames.get(check) : E.pluralValueNames.get(check)}!` });
+            matches.forEach((c) => {
+                deck.remove(c);
+                playerDeck.insertTop(c);
+            });
+
+            const opp = targetPlayer.opponentHand;
+            if (opp !== undefined) {
+                opp.showCards(matches);
+            }
+
+            setBigMessage("YES");
+            await sleep(2000);
+            setBigMessage("");
+
+            targetPlayer.managedDeck.current!.setDeck(deck);
+            player.managedDeck.current!.setDeck(playerDeck);
+        }
+
+        player.managedDeck.current!.setDeck(bookManager!.fill(player.managedDeck!.current!.getDeck()!, player.myName));
+        setBookList(bookManager!.toString());
+
+        await sleep(1000);
+        nextTurn();
+    } 
+
     async function newGame() {
-        deck.current!.setDeck(pile);
-        deck.current!.shuffle();
+        drawPile.current!.setDeck(pile);
+        drawPile.current!.shuffle();
         let tempPlayers = [];
         tempPlayers.push(new Player("PLAYER", playerHand));
         for (let i = 0; i < OPPONENT_COUNT; i++) {
             tempPlayers.push(new Player(`OPPONENT ${i + 1}`, opponentHands!.current[i]));
         }
         players = tempPlayers;
+        setPlayersDisplay(tempPlayers);
 
         for (let i = 0; i < tempPlayers.length; i++) {
             for (let j = 0; j < STARTING_CARDS; j++) {
-                tempPlayers[i].managedDeck.current!.depositCard(deck.current!.drawCard()!);
+                tempPlayers[i].managedDeck.current!.depositCard(drawPile.current!.drawCard()!);
                 await sleep(10);
-            }
+            }      
         }
 
+        setBookManager(new E.BookManager(tempPlayers.map(p => p.myName)));
+
         setGameActive(true);
-        await startGame();
+        startGame();
     }
 
     async function startGame() {
@@ -128,27 +198,35 @@ export const GoFish: React.FC = () => {
         nextTurn();
     }
 
-    const cardValueTargets = Object.keys(E.CardValue).filter((item) => {
-        return isNaN(Number(item));
-    }).map((s) => { return { label: s, command: () => { console.log(s); } } });
+    const cardValueTargets = Object.entries(E.CardValue).filter((e) => isNaN(Number(e[0]))).map((e) => {
+        return { label: e[1] === 6 ? 'Sixes' : `${e[0]}s`, command: () => { playerSelect(e[1] as E.CardValue) }}
+    });
 
-    console.log(isPlayerTurn);
+    const booksPanel = (
+        <div className='InfoPanel'>
+            {
+                bookList
+            }
+        </div>
+    );
 
     return (
         <div className="PlayArea">
+            { bigMessage?.length > 0 ? <C.BigMessage>{bigMessage}</C.BigMessage> : <></> }
             <Dialog className='DialogBox' visible={!gameActive} onHide={newGame}>
                 <h1>{gameMessage.head}</h1>
                 <p>{gameMessage.body}</p>
                 <Button label='OK' onClick={newGame}/>
             </Dialog>
             <Dialog className='DialogBox' visible={isPlayerTurn && target !== -1} onHide={() => setTarget(-1)}>
-                <h3>Does {players[currentPlayer]?.myName} have any...</h3>
+                <h3>Does {playersDisplay[target]?.myName} have any...</h3>
                 <Menu model={cardValueTargets} />
             </Dialog>
             <div className='Deck-Collection'>
-                <C.ManagedDrawPile ref={deck} engine={engine} name="Deck" initialDeck={pile} visibility={C.DeckVisibility.Hidden}/>
+                {booksPanel}
+                <C.ManagedDrawPile ref={drawPile} engine={engine} name="Deck" initialDeck={pile} visibility={C.DeckVisibility.Hidden}/>
                 {opponentHands!.current.map((hand, index) => 
-                <C.ManagedOpponentHand key={index} ref={hand} engine={engine} name={`OPPONENT ${index + 1}`} initialDeck={empty} onClick={() => setTarget(index)} isClickEnabled={isPlayerTurn && target === -1}/>
+                <C.ManagedOpponentHand key={index} ref={hand} engine={engine} name={`OPPONENT ${index + 1}`} initialDeck={empty} onClick={() => setTarget(index + 1)} isClickEnabled={isPlayerTurn && target === -1}/>
                 )}
             </div>
             <div className='Hand-Collection'>

@@ -425,10 +425,10 @@ export class ManagedOpponentHand extends React.Component<IManagedOpponentHandPro
         this.setState( {deck: newDeck} );
     }
 
-    showCards = (...cards: CardEngine.PlayingCard[]) => {
-        let tempSet = { ...this.state.visibleCards };
+    showCards = (cards: CardEngine.PlayingCard[]) => {
+        let tempSet = this.state.visibleCards;
         cards.forEach(card => {
-            tempSet.add(card);
+            tempSet = tempSet.add(card);
         });
         this.setState({ visibleCards: tempSet });
     }
@@ -587,4 +587,14 @@ export class ManagedMoney extends React.Component<IManagedMoneyProps, IManagedMo
 
         return (<div className='cash-container'>{money}</div>);
     }
+}
+
+interface IBigMessageProps {
+    children?: string;
+}
+
+export const BigMessage: React.FC<IBigMessageProps> = (props) => {
+    return (
+        <span className='big-message'>{props.children}</span>
+    );
 }
