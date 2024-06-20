@@ -142,3 +142,16 @@
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
     margin-top: -5px;
 }
+
+.clickable {
+    outline: 2px;
+    outline-color: white;
+    outline-style: hidden;
+    cursor: pointer;
+    border-radius: 5%;
+}
+
+.clickable:hover {
+    outline: dotted 2px white;
+    filter: brightness(120%);
+}

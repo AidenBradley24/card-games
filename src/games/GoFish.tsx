@@ -19,7 +19,8 @@ export const GoFish: React.FC = () => {
     
     pile.shuffle();
 
-    var isPlayerTurn = false;
+    const [isPlayerTurn, setIsPlayerTurn] = useState(false);
+    const [target, setTarget] = useState(-1);
     var turnNumber = 0;
 
     const OPPONENT_COUNT = 3;
@@ -63,30 +64,56 @@ export const GoFish: React.FC = () => {
 
     async function nextTurn() {
         turnNumber++;
+        currentPlayer++;
+        if (currentPlayer >= players.length) {
+            currentPlayer = 0;
+        }
+
+        console.log(players);
+        console.log(currentPlayer);
+        
         if (players.length === 0) {
             return;
-        }
+        } 
 
-        let wasLastPlayer = false;
-        if (currentPlayer === -1) {
-            wasLastPlayer = true;
-            currentPlayer = players.length - 1;
-        }
+        let player = players[currentPlayer];
+        toast.current?.show({ severity: "info", content: `${player.myName} turn!` });
 
+        if (player.myName.startsWith("PLAYER")) {
+            await playerTurn();
+        }
+        else {
+            await opponentTurn();
+        }
+    }
+
+    async function playerTurn() {
+        setIsPlayerTurn(true);
+        setTarget(-1);
+    }
+
+    async function opponentTurn() {
+
+    }
+
+    function playerSelect(value: E.CardValue) {
+        console.log(`value ${value.toString()}`);
     }
 
     async function newGame() {
         deck.current!.setDeck(pile);
         deck.current!.shuffle();
-        players = [new Player("PLAYER", playerHand)];
+        let tempPlayers = [];
+        tempPlayers.push(new Player("PLAYER", playerHand));
         for (let i = 0; i < OPPONENT_COUNT; i++) {
-            players.push(new Player(`OPPONENT ${i + 1}`, opponentHands!.current[i]));
+            tempPlayers.push(new Player(`OPPONENT ${i + 1}`, opponentHands!.current[i]));
         }
+        players = tempPlayers;
 
-        for (let i = 0; i < players.length; i++) {
+        for (let i = 0; i < tempPlayers.length; i++) {
             for (let j = 0; j < STARTING_CARDS; j++) {
-                players[i].managedDeck.current!.depositCard(deck.current!.drawCard()!);
-                await sleep(50);
+                tempPlayers[i].managedDeck.current!.depositCard(deck.current!.drawCard()!);
+                await sleep(10);
             }
         }
 
@@ -95,12 +122,17 @@ export const GoFish: React.FC = () => {
     }
 
     async function startGame() {
-        toast.current?.show({ severity: "success", content: "Game started!" });        
+        toast.current?.show({ severity: "success", content: "Game started!" });   
         await sleep(500);
-        
         currentPlayer = -1;
         nextTurn();
     }
+
+    const cardValueTargets = Object.keys(E.CardValue).filter((item) => {
+        return isNaN(Number(item));
+    }).map((s) => { return { label: s, command: () => { console.log(s); } } });
+
+    console.log(isPlayerTurn);
 
     return (
         <div className="PlayArea">
@@ -109,9 +141,15 @@ export const GoFish: React.FC = () => {
                 <p>{gameMessage.body}</p>
                 <Button label='OK' onClick={newGame}/>
             </Dialog>
+            <Dialog className='DialogBox' visible={isPlayerTurn && target !== -1} onHide={() => setTarget(-1)}>
+                <h3>Does {players[currentPlayer]?.myName} have any...</h3>
+                <Menu model={cardValueTargets} />
+            </Dialog>
             <div className='Deck-Collection'>
                 <C.ManagedDrawPile ref={deck} engine={engine} name="Deck" initialDeck={pile} visibility={C.DeckVisibility.Hidden}/>
-                {opponentHands!.current.map((hand, index) => <C.ManagedOpponentHand ref={hand} engine={engine} name={`OPPONENT ${index + 1}`} initialDeck={empty}/>)}
+                {opponentHands!.current.map((hand, index) => 
+                <C.ManagedOpponentHand key={index} ref={hand} engine={engine} name={`OPPONENT ${index + 1}`} initialDeck={empty} onClick={() => setTarget(index)} isClickEnabled={isPlayerTurn && target === -1}/>
+                )}
             </div>
             <div className='Hand-Collection'>
                 <C.ManagedHand ref={playerHand} engine={engine} name="Hand" initialDeck={empty}/>

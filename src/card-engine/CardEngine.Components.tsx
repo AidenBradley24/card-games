@@ -31,7 +31,17 @@ export const RenderedPlayingCardPlaceholder: React.FC = () => {
         <div className='PlayingCardPlaceholder'></div>
     );
 }
-    
+
+interface ICommonProps {
+    name: string;
+    engine: CardEngine.Engine;
+    onClick?: () => void;
+    isClickEnabled?: boolean;
+}
+
+interface ICommonState {
+}
+
 interface IRenderedPlayingCardProps {
     card: CardEngine.PlayingCard;
     hidden: boolean;
@@ -46,9 +56,7 @@ export enum DeckVisibility {
     TopTwoFlipped
 }
     
-interface IManagedDeckProps {
-    name: string;
-    engine: CardEngine.Engine;
+interface IManagedDeckProps extends ICommonProps {
     initialDeck: CardEngine.Deck;
     visibility: DeckVisibility;
     onEmpty?: () => void;
@@ -56,7 +64,7 @@ interface IManagedDeckProps {
     visibleButtons?: boolean;
 }
 
-interface IManagedDeckState {
+interface IManagedDeckState extends ICommonState {
     deck: CardEngine.Deck;
     visibility: DeckVisibility
 }
@@ -69,7 +77,10 @@ export class ManagedDeck extends React.Component<IManagedDeckProps, IManagedDeck
 
     constructor(props: IManagedDeckProps) {
         super(props);
-        this.state = {deck: props.initialDeck, visibility: props.visibility};
+        this.state = {
+            deck: props.initialDeck, 
+            visibility: props.visibility,
+        };
         this.id = props.engine.assignDeck(this as CardEngine.IManagedDeck);
         this.cm = createRef<ContextMenu>();
         this.menuItems = [];
@@ -138,14 +149,16 @@ export class ManagedDeck extends React.Component<IManagedDeckProps, IManagedDeck
         return (
             <div>
                 <ContextMenu model={this.menuItems} ref={this.cm}/>
-                <div className="Deck" onContextMenu={(e) => this.cm.current?.show(e)}>
-                    <span>{name} [{deck.size}]</span>
-                    <div>{inner}</div>
-                    <div>
-                        {/* options section */}
-                        {this.children}
+                <div className={this.props.isClickEnabled ? 'clickable' : ''} onClick={() => { if (this.props.isClickEnabled && this.props.onClick !== undefined) this.props.onClick()}}>
+                    <div className="Deck" onContextMenu={(e) => this.cm.current?.show(e)}>
+                        <span>{name} [{deck.size}]</span>
+                        <div>{inner}</div>
+                        <div>
+                            {/* options section */}
+                            {this.children}
+                        </div>
                     </div>
-                </div>
+                </div>                  
             </div>
         
         );
@@ -191,31 +204,29 @@ export class ManagedDrawPile extends ManagedDeck {
     }
 }
 
-interface IHandProps {
-    name: string;
-    engine: CardEngine.Engine;
+interface IManagedHandProps extends ICommonProps {
     initialDeck: CardEngine.Deck;
     onSelect?: (card: CardEngine.PlayingCard) => void;
     onEmpty?: () => void;
 }
 
-interface IManagedHandState extends IManagedDeckState {
+interface IManagedHandState extends ICommonState {
+    deck: CardEngine.Deck;
     hoveredCardIndex : number | null;
 }
 
-export class ManagedHand extends React.Component<IHandProps, IManagedHandState> implements CardEngine.IManagedDeck {
+export class ManagedHand extends React.Component<IManagedHandProps, IManagedHandState> implements CardEngine.IManagedDeck {
 
     public id: string;
     private onSelect;
     private cm;
     private pickedCardIndex;
 
-    constructor(props: IHandProps) {
+    constructor(props: IManagedHandProps) {
         super(props);
         this.state = {
             deck: props.initialDeck,
             hoveredCardIndex: null,
-            visibility: DeckVisibility.Hidden
         }
 
         this.id = props.engine.assignDeck(this as CardEngine.IManagedDeck);
@@ -224,12 +235,19 @@ export class ManagedHand extends React.Component<IHandProps, IManagedHandState> 
         this.pickedCardIndex = -1;
     }
 
+    checkDeck() {
+        if (this.state.deck.size === 0) {
+            if (this.props.onEmpty !== undefined) this.props.onEmpty();
+        }
+    }
+
     getDeck = () => {
         return this.state.deck;
     }
 
     setDeck = (newDeck: CardEngine.Deck) => {
         this.setState( {deck: newDeck} );
+        this.checkDeck();
     }
 
     pickCard = () => {
@@ -248,7 +266,8 @@ export class ManagedHand extends React.Component<IHandProps, IManagedHandState> 
             let card = this.state.deck.list[this.pickedCardIndex];
             const newDeck = this.state.deck.clone();
             if (newDeck.remove(card)) {
-                this.setState({ deck: newDeck });
+                this.setState( {deck: newDeck} );
+                this.checkDeck();
                 return card;
             }
         }
@@ -260,19 +279,20 @@ export class ManagedHand extends React.Component<IHandProps, IManagedHandState> 
         const newDeck = this.state.deck.clone();
         newDeck.insertTop(card);
         this.setState( {deck: newDeck} );
+        this.checkDeck();
         return true;
     }
 
     sort = () => {
         const newDeck = this.state.deck.clone();
         newDeck.sort();
-        this.setState( {deck: newDeck} );
+        this.setState({ deck: newDeck });
     }
 
     shuffle = () => {
         const newDeck = this.state.deck.clone();
         newDeck.shuffle();
-        this.setState( {deck: newDeck} );
+        this.setState({ deck: newDeck });
     }
 
     render() {
@@ -319,37 +339,47 @@ export class ManagedHand extends React.Component<IHandProps, IManagedHandState> 
         const footer = (<Button label='Sort' onClick={this.sort}/>);
         const content = this.state.deck.size === 0 ? <span>No cards</span> : <Carousel className='hand' numVisible={HAND_SIZE} value={items} itemTemplate={itemTemplate} footer={footer}/>;
         return (
-            <div className='hand'>
-                <ContextMenu model={menuItems} ref={this.cm}/>
-                {content}
+            <div className={this.props.isClickEnabled ? 'clickable' : ''} onClick={() => { if (this.props.isClickEnabled && this.props.onClick !== undefined) this.props.onClick()}}>
+                <div className='hand'>
+                    <ContextMenu model={menuItems} ref={this.cm}/>
+                    {content}
+                </div>
             </div>
         );       
     }
 }
 
-interface IManagedOpponentHandState extends IManagedDeckState {
+interface IManagedOpponentHandState extends ICommonState {
+    deck: CardEngine.Deck;
     visibleCards: Set<CardEngine.PlayingCard>;
 }
 
-export class ManagedOpponentHand extends React.Component<IHandProps, IManagedOpponentHandState> implements CardEngine.IManagedDeck {
+interface IManagedOpponentHandProps extends ICommonProps {
+    initialDeck: CardEngine.Deck;
+    onSelect?: (card: CardEngine.PlayingCard) => void;
+    onEmpty?: () => void;
+}
+
+export class ManagedOpponentHand extends React.Component<IManagedOpponentHandProps, IManagedOpponentHandState> implements CardEngine.IManagedDeck {
 
     public id: string;
-    private onSelect;
-    private cm;
     private pickedCardIndex;
 
-    constructor(props: IHandProps) {
+    constructor(props: IManagedHandProps) {
         super(props);
         this.state = {
             deck: props.initialDeck,
-            visibility: DeckVisibility.Hidden,
-            visibleCards: new Set<CardEngine.PlayingCard>()
+            visibleCards: new Set<CardEngine.PlayingCard>(),
         }
 
         this.id = props.engine.assignDeck(this as CardEngine.IManagedDeck);
-        this.cm = createRef<ContextMenu>();
-        this.onSelect = props.onSelect;
         this.pickedCardIndex = -1;
+    }
+
+    checkDeck() {
+        if (this.state.deck.size === 0) {
+            if (this.props.onEmpty !== undefined) this.props.onEmpty();
+        }
     }
 
     getDeck = () => {
@@ -357,7 +387,8 @@ export class ManagedOpponentHand extends React.Component<IHandProps, IManagedOpp
     }
 
     setDeck = (newDeck: CardEngine.Deck) => {
-        this.setState( {deck: newDeck} );
+        this.setState({ deck: newDeck });
+        this.checkDeck();
     }
 
     drawCard = () => {
@@ -366,6 +397,7 @@ export class ManagedOpponentHand extends React.Component<IHandProps, IManagedOpp
             const newDeck = this.state.deck.clone();
             if (newDeck.remove(card)) {
                 this.setState({ deck: newDeck });
+                this.checkDeck();
                 return card;
             }
         }
@@ -376,7 +408,8 @@ export class ManagedOpponentHand extends React.Component<IHandProps, IManagedOpp
     depositCard = (card: CardEngine.PlayingCard) => {
         const newDeck = this.state.deck.clone();
         newDeck.insertTop(card);
-        this.setState( {deck: newDeck} );
+        this.setState({ deck: newDeck });
+        this.checkDeck();
         return true;
     }
 
@@ -423,13 +456,15 @@ export class ManagedOpponentHand extends React.Component<IHandProps, IManagedOpp
     }
 
     render() {
-        return (
-            <div className='opp-hand'>
-                <span>{this.props.name} [{this.state.deck.size}]</span>
-                <div className='opp-hand-cards'>
-                    {this.state.deck.list.map((card) => <div className='opp-hand-card'><RenderedPlayingCard card={card} hidden={!this.state.visibleCards.has(card)}/></div>)}
+        return (      
+            <div className={this.props.isClickEnabled ? 'clickable' : ''} onClick={() => { if (this.props.isClickEnabled && this.props.onClick !== undefined) this.props.onClick()}}>
+                <div className='opp-hand'>
+                    <span>{this.props.name} [{this.state.deck.size}]</span>
+                    <div className='opp-hand-cards'>
+                        {this.state.deck.list.map((card) => <div key={card.toString()} className='opp-hand-card'><RenderedPlayingCard card={card} hidden={!this.state.visibleCards.has(card)}/></div>)}
+                    </div>
                 </div>
-            </div>
+            </div>          
         );       
     }
 }
