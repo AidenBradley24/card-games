@@ -75,8 +75,20 @@ export class PlayingCard {
         this.value = value;
     }
 
+    get suitName() {
+        return suitNames.get(this.suit)!;
+    }
+
+    get valueName() {
+        return valueNames.get(this.value)!;
+    }
+
+    get pluralValueName() {
+        return pluralValueNames.get(this.value)!;
+    }
+
     toString() : string {
-        return valueNames.get(this.value) + " of " + suitNames.get(this.suit);
+        return this.valueName + " of " + this.suitName;
     }
 
     compareTo(other : PlayingCard) : number {
@@ -217,12 +229,16 @@ export function getEmptyDeck() : Deck {
     return new Deck([]);
 }
 
-export function getRandomCard() : PlayingCard {
-    const suits = Object.values(CardSuit).filter(value => typeof value === 'string') as string[];
-    const values = Object.values(CardValue).filter(value => typeof value === 'string') as string[];
-    const randomSuit = suits[Math.floor(Math.random() * suits.length)];
-    const randomValue = values[Math.floor(Math.random() * values.length)];
-    return new PlayingCard(CardSuit[randomSuit as keyof typeof CardSuit], CardValue[randomValue as keyof typeof CardValue]);
+export function randomCardSuit() {
+    return Math.floor(Math.random() * 4 + 1) as CardSuit;
+}
+
+export function randomCardValue() {
+    return Math.floor(Math.random() * 13 + 1) as CardValue;
+}
+
+export function randomCard() : PlayingCard {
+    return new PlayingCard(randomCardSuit(), randomCardValue());
 }
 
 export class Engine {
@@ -267,55 +283,26 @@ export class Engine {
     isCardInPlay = () => this.cardInPlay === null;
 }
 
-// only works with one normal 52 deck
-export class BookManager {
-    bookMap: Map<string, Set<CardValue>>;
-    constructor(owners: string[]) {
-        this.bookMap = new Map();
-        owners.forEach(owner => {
-            this.bookMap.set(owner, new Set);
-        });
+export function countValues(cards: PlayingCard[]) {
+    const valueCountMap: Map<CardValue, number> = new Map();
+    for (const card of cards) {
+        const currentCount = valueCountMap.get(card.value) || 0;
+        valueCountMap.set(card.value, currentCount + 1);
     }
+    return valueCountMap;
+}
 
-    clone() {
-        return { ...this } as BookManager;
+export function fillBooks(deck: Deck): [CardValue[], Deck] {
+    let tempDeck = deck.clone();
+    const valueCountMap = countValues(tempDeck.list);
+    const fullBooks: CardValue[] = [];
+    for (const [value, count] of valueCountMap.entries()) {
+        if (count === 4) {
+            fullBooks.push(value);
+        }
     }
-
-    fill(deck: Deck, owner: string) {
-        deck = deck.clone();
-        const valueCountMap: Map<CardValue, number> = new Map();
-
-        for (const card of deck.list) {
-            const currentCount = valueCountMap.get(card.value) || 0;
-            valueCountMap.set(card.value, currentCount + 1);
-        }
-
-        const fullBooks: CardValue[] = [];
-        for (const [value, count] of valueCountMap.entries()) {
-            if (count === 1) {
-                fullBooks.push(value);
-            }
-        }
-
-        deck.list = deck.list.filter(c => fullBooks.includes(c.value));
-        for (const full of fullBooks) {
-            this.bookMap.get(owner)?.add(full);
-        }
-
-        return deck;
-    }
-
-    toString() {
-        let s = "";
-        for (const [owner, values] of this.bookMap.entries()) {
-            s = s.concat(owner, ":\n");
-            for (const value of values) {
-                s = s.concat("\n - ", pluralValueNames.get(value)!, '\n');
-            }
-        }
-        console.log(s);
-        return s;
-    }
+    tempDeck.list = tempDeck.list.filter(c => !fullBooks.includes(c.value));
+    return [fullBooks, tempDeck];
 }
 
 export interface IManagedDeck {

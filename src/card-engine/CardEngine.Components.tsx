@@ -21,6 +21,7 @@ import { Message } from 'primereact/message';
 import { FloatLabel } from 'primereact/floatlabel';
 
 export const RenderedPlayingCard: React.FC<IRenderedPlayingCardProps> = ({ card, hidden }) => {
+    if (card === null || card === undefined) return <></>;
     return (
         <img className="PlayingCard" src={`${process.env.PUBLIC_URL}/card_graphics/` + card.id(hidden) + '.svg'} alt={hidden ? `hidden ${card.isRed() ? 'red' : 'black'} card` : card.toString()}/>
     );
@@ -496,7 +497,7 @@ export class ManagedMoney extends React.Component<IManagedMoneyProps, IManagedMo
 
     constructor(props: IManagedMoneyProps) {
         super(props);
-        this.state = {currentMoney: props.startingMoney, bets: [], newBet: false, newBetValue: props.minBet }
+        this.state = { currentMoney: props.startingMoney, bets: [], newBet: false, newBetValue: props.minBet }
         this.betMap = new Map<number, number>();
         this.inputRef = createRef<InputNumber>();
     }
@@ -597,4 +598,88 @@ export const BigMessage: React.FC<IBigMessageProps> = (props) => {
     return (
         <span className='big-message'>{props.children}</span>
     );
+}
+
+interface IManagedBookDisplayProps {
+    title: string;
+    owners: string[];
+    onFillBook?: (owner: string, cardValue: CardEngine.CardValue) => void;
+}
+
+interface IManagedBookDisplayState {
+    library: CardEngine.CardValue[][];
+    completed: CardEngine.CardValue[];
+}
+
+export class ManagedBookDisplay extends React.Component<IManagedBookDisplayProps, IManagedBookDisplayState> {
+
+    constructor(props: IManagedBookDisplayProps) {
+        super(props);
+        this.state = { library: [], completed: [] }
+    }
+
+    get completedBooks() {
+        return this.state.completed;
+    }
+
+    get scores() {
+        return this.state.library.map((list, index) => {
+            return {            
+                name: this.props.owners[index],
+                score: list.length
+            }
+        }).sort((left, right) => right.score - left.score);
+    }
+
+    init() {
+        let lib = [];
+        for (let i = 0; i < this.props.owners.length; i++) {
+            lib.push(new Array());
+        }
+        this.state = { library: lib, completed: [] }
+    }
+
+    fill(deck: CardEngine.Deck, owner: string) {
+        const [fullBooks, newDeck] = CardEngine.fillBooks(deck);
+        const ownerIndex = this.props.owners.indexOf(owner);
+        if (ownerIndex === -1) {
+            throw `Unknown owner '${owner}'`;
+        }
+        let tempLib = [...this.state.library];
+        let tempCompleted = [...this.state.completed];
+        for (const book of fullBooks) {
+            tempLib[ownerIndex].push(book);
+            tempCompleted.push(book);
+        }
+        this.setState({ library: tempLib, completed: tempCompleted });
+        for (const book of fullBooks) {
+            if (this.props.onFillBook !== undefined) this.props.onFillBook(owner, book);
+        }
+        return newDeck;
+    }
+
+    render() {
+        return (
+            <div className='book-display'>
+                <span>{this.props.title}</span>
+                <ul>
+                    {
+                        this.props.owners.map((owner) => (
+                            <li key={owner}>
+                                <span>{owner}</span>
+                                <ul>
+                                {
+                                    this.state.library[this.props.owners.indexOf(owner)]?.map((cardValue) => (
+                                        <li key={cardValue}>{CardEngine.pluralValueNames.get(cardValue)}</li>
+                                    ))
+                                }
+                                </ul>
+                            </li>
+                        ))
+                    }
+                </ul>
+            </div>
+        );
+    }
+
 }

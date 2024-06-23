@@ -183,3 +183,14 @@
     1px 25px 35px rgba(16,16,16,0.2),
     1px 30px 60px rgba(16,16,16,0.4);
 }
+
+.book-display {
+    background-color: whitesmoke;
+    width: 200px;
+    height: 300px;
+    border-radius: 5%;
+    color: black;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    padding: 10px;
+    text-align: left;
+}
